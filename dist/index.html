@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>demo</title>
+  <script src="./plugins/vue-3.0.11.js"></script>
+  <script src="./plugins/spark-md5-3.0.0.js"></script>
+  <script src="./js-upload-file.min.js"></script>
+  <style>
+    .filetable{
+      margin-top: 10px;
+      width: 100%;
+      table-layout: fixed;
+      border-collapse: collapse;
+      word-break: break-all;
+    }
+    .filetable th,
+    .filetable td{
+      padding: 10px 15px;
+      border: 1px solid #000;
+    }
+    .filetable tbody tr:nth-child(odd){
+      background-color: #eeeeee;
+    }
+    .filetable tbody tr:nth-child(even){
+      background-color: transparent;
+    }
+  </style>
+</head>
+<body>
+  <div id="counter">
+    <input type="file" name="file" multiple @change="selectFile($event)">
+    <button @click="stopUpload()" v-if="myUpload.isUploading">暂停上传</button>
+    <button @click="startUpload()" v-else>开始上传</button>
+    &nbsp;<span>{{myUpload.fetchedIndex}}</span>&nbsp;
+    <button @click="removeFile()">全部移除</button>
+    <table class="filetable">
+      <colgroup>
+        <col width="25%">
+        <col width="45%">
+        <col width="10%">
+        <col width="10%">
+        <col width="10%">
+      </colgroup>
+      <thead>
+        <tr>
+          <th>文件名</th>
+          <th>地址</th>
+          <th>状态</th>
+          <th>上传进度</th>
+          <th>操作</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr v-for="one in myUpload.fileList">
+          <td>{{one.file.name}}</td>
+          <td>{{one.response ? one.response.data : ''}}</td>
+          <td>{{one.status}}</td>
+          <td>{{one.chunkSendedCount / one.chunkCount}}</td>
+          <td>
+            <button @click="startUpload([one])" v-if="['queue', 'pause', 'error'].indexOf(one.status) > -1">开始上传</button>
+            <button @click="stopUpload([one])" v-if="['wait', 'hash', 'uping'].indexOf(one.status) > -1">暂停</button>
+            <button @click="removeFile([one])">移除</button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    <div></div>
+  </div>
+  <script>
+    Vue.createApp({
+      data () {
+        return {
+          myUpload: new JsUploadFile({
+            server: '/file/upload', // 上传接口
+            chunked: true, // 是否分片
+            chunkSize: 1 * 1024 * 1024, // 分片大小
+            maxParallel: 3, // 最大同时上传文件数
+            formDataKey: { // FormData使用的key
+              file: 'file',
+              hash: 'hash',
+              chunk: 'chunkIndex',
+              chunks: 'chunksCount',
+              splitSize: 'splitSize',
+              name: 'name'
+            },
+            /* createHash: (file) => { // 自定义hash生成
+              return new Promise((resolve) => {
+                const reader = new FileReader()
+                reader.readAsArrayBuffer(file)
+                reader.addEventListener('loadend', () => {
+                  const spark = new SparkMD5.ArrayBuffer()
+                  spark.append(reader.result)
+                  resolve(spark.end())
+                })
+              })
+            }, */
+            beforeUpload: (file, formData, xhr) => {
+              formData.append('temp', 'tempValue')
+              xhr.setRequestHeader('tempHead', 'tempHeadValue')
+              // xhr.withCredentials = true
+              console.log('beforeUpload', file, formData, xhr)
+            },
+            uploadCallback: (obj) => {
+              console.log(obj)
+            }
+          })
+        }
+      },
+      methods: {
+        selectFile (event) {
+          const files = event.target.files
+          this.myUpload.addFile(files)
+        },
+        startUpload (value) {
+          this.myUpload.start(value)
+        },
+        stopUpload (value) {
+          this.myUpload.pause(value)
+        },
+        removeFile (value) {
+          this.myUpload.remove(value)
+        }
+      },
+      created () {
+      }
+    }).mount('#counter')
+  </script>
+</body>
+</html>

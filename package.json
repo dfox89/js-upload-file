@@ -9,8 +9,11 @@
   "author": "dfox89",
   "description": "实现前端文件上传，分片上传的插件",
   "keywords": [
+    "文件上传",
+    "分片上传",
     "upload",
-    "file"
+    "file",
+    "javascript"
   ],
   "repository": {
     "type": "git",

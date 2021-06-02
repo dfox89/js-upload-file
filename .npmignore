@@ -1,7 +1,10 @@
-cache
-dist/plugins
-dist/analyzer-report.html
-dist/index.html
-node_modules
-src
-server.js
+/cache/
+/dist/plugins/
+/dist/analyzer-report.html
+/dist/index.html
+/node_modules/
+/src/
+/.browserslistrc
+/.eslintrc
+/server.js
+/webpack.config.js

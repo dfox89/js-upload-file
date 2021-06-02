@@ -1,5 +1,13 @@
 # js-upload-file
 
+[![npm](https://img.shields.io/npm/v/js-upload-file?color=FF0000)](https://www.npmjs.com/package/js-upload-file)
+[![release](https://img.shields.io/github/v/release/dfox89/js-upload-file?color=FF7F00)](https://github.com/dfox89/js-upload-file/releases)
+[![npm-publish](https://img.shields.io/github/workflow/status/dfox89/js-upload-file/npm-publish?color=FFFF00&label=npm%20publish)](https://github.com/dfox89/js-upload-file/actions)
+![size](https://img.shields.io/bundlephobia/min/js-upload-file?color=00FF00)
+![language](https://img.shields.io/github/languages/top/dfox89/js-upload-file?color=00FFFF)
+![license](https://img.shields.io/npm/l/js-upload-file?color=0000FF)
+[![last-commit](https://img.shields.io/github/last-commit/dfox89/js-upload-file?color=8B00FF)](https://github.com/dfox89/js-upload-file/commits/master)
+
 实现前端文件上传，分片上传，多文件同时上传，暂停及续传；<br>但上传按钮样式及上传文件类型，大小等需要自行控制及校验；
 
 ## 安装
@@ -92,10 +100,10 @@ cdn
 
 | Method | Param | Description |
 | --- | --- | --- |
-| addFile(value) | 必选 <code>{Array}</code> value 原生文件对象组成的数组 | 将文件添加到上传实例中 |
-| start(value) | 可选 <code>{Array}</code> value <b>File</b>&nbsp;实例组成的数组 | 开始上传，value不传则全部上传，传入value则上传传入的 |
-| pause(value) | 可选 <code>{Array}</code> value <b>File</b>&nbsp;实例组成的数组 | 暂停上传，value不传则全部暂停，传入value则暂停传入的 |
-| remove(value) | 可选 <code>{Array}</code> value <b>File</b>&nbsp;实例组成的数组 | 移除文件，value不传则全部移除，传入value则移除传入的 |
+| addFile(value) | 必选 <code>{Array}</code> value 原生文件对象组成的数组 | 将文件添加到上传实例中<br>* 添加的文件status默认为queue |
+| start(value) | 可选 <code>{Array}</code> value <b>File</b>&nbsp;实例组成的数组 | 开始上传，value不传则全部上传，传入value则上传传入的<br>* 状态为queue，pause，error的才会上传<br>* 其他状态值的文件不受影响 |
+| pause(value) | 可选 <code>{Array}</code> value <b>File</b>&nbsp;实例组成的数组 | 暂停上传，value不传则全部暂停，传入value则暂停传入的<br>* 状态为wait，hash，uping的才会暂停 |
+| remove(value) | 可选 <code>{Array}</code> value <b>File</b>&nbsp;实例组成的数组 | 移除文件，value不传则全部移除，传入value则移除传入的<br>* 任何状态的文件均可移除<br>* hash，uping状态的文件会暂停后移除，但不会触发pause回调，只会触发remove回调 |
 
 <br>
 
@@ -104,7 +112,7 @@ cdn
 | --- | --- | --- |
 | file | <code>Object</code> | 原生文件对象 |
 | status | <code>String</code> | 文件状态<br>queue：待上传<br>wait：等待上传队列<br>hash：生成hash值中<br>uping：上传中<br>pause：上传暂停<br>success：上传成功<br>error：上传失败<br>remove：即将停止上传，并从实例的fileList中移除 |
-| hash | <code>String</code> | 32位随机字符串，通过createHash自定义生成的值 |
+| hash | <code>String</code> | 默认为32位随机字符串，或者是通过createHash自定义生成的值 |
 | chunkSize | <code>Number</code> | 分片大小，若初始化不分片则就是文件大小 |
 | chunkCount | <code>Number</code> | 分片数，若初始化不分片则就是1 |
 | chunkSendedCount | <code>Number</code> | 已上传分片数 |

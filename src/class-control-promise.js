@@ -1,7 +1,7 @@
 class ControlPormise {
   constructor (callback) {
     this.p = null
-    this.callback = callback
+    this._callback = callback
   }
 
   init () {
@@ -14,7 +14,7 @@ class ControlPormise {
         },
         set: (value) => {
           if (this.p) {
-            if (this.callback) this.callback()
+            if (this._callback) this._callback()
             this.p = null
             value === 'resolve' ? resolve() : reject(new Error(value))
           }

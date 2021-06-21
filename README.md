@@ -1,10 +1,8 @@
 # js-upload-file
 
-[![npm](https://img.shields.io/npm/v/js-upload-file?color=FF0000)](https://www.npmjs.com/package/js-upload-file)
-[![release](https://img.shields.io/github/v/release/dfox89/js-upload-file?color=FF7F00)](https://github.com/dfox89/js-upload-file/releases)
+[![npm-package](https://img.shields.io/npm/v/js-upload-file?color=FF0000&label=npm%20package)](https://www.npmjs.com/package/js-upload-file)
 [![npm-publish](https://img.shields.io/github/workflow/status/dfox89/js-upload-file/npm-publish?color=FFFF00&label=npm%20publish)](https://github.com/dfox89/js-upload-file/actions)
-![size](https://img.shields.io/bundlephobia/min/js-upload-file?color=00FF00)
-![language](https://img.shields.io/github/languages/top/dfox89/js-upload-file?color=00FFFF)
+![size](https://img.shields.io/bundlephobia/min/js-upload-file?color=FF7F00)
 ![license](https://img.shields.io/npm/l/js-upload-file?color=0000FF)
 [![last-commit](https://img.shields.io/github/last-commit/dfox89/js-upload-file?color=8B00FF)](https://github.com/dfox89/js-upload-file/commits/master)
 
@@ -104,6 +102,7 @@ cdn
 | start(value) | 可选 <code>{Array}</code> value <b>File</b>&nbsp;实例组成的数组 | 开始上传，value不传则全部上传，传入value则上传传入的<br>* 状态为queue，pause，error的才会上传<br>* 其他状态值的文件不受影响 |
 | pause(value) | 可选 <code>{Array}</code> value <b>File</b>&nbsp;实例组成的数组 | 暂停上传，value不传则全部暂停，传入value则暂停传入的<br>* 状态为wait，hash，uping的才会暂停 |
 | remove(value) | 可选 <code>{Array}</code> value <b>File</b>&nbsp;实例组成的数组 | 移除文件，value不传则全部移除，传入value则移除传入的<br>* 任何状态的文件均可移除<br>* hash，uping状态的文件会暂停后移除，但不会触发pause回调，只会触发remove回调 |
+| on(event, callback) | 必选 <code>{String}</code> event 监听事件名，可监听事件名同uploadCallback回调参数的type值<br>必选 <code>{Function}</code> 监听回调，回调参数同配置项uploadCallback | - |
 
 <br>
 
@@ -170,8 +169,12 @@ cdn
         console.log('beforeUpload', file, formData, xhr)
       },
       uploadCallback: (obj) => {
-        console.log(obj)
+        console.log('uploadCallback', obj)
       }
+      // 监听成功事件，可监听事件queue,hash,uping,pause,success,error,finish,remove
+      myUpload.on('success', (obj) => {
+        console.log('success', obj)
+      })
     })
     function selectFile () {
       const files = this.event.target.files;

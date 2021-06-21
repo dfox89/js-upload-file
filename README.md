@@ -171,10 +171,10 @@ cdn
       uploadCallback: (obj) => {
         console.log('uploadCallback', obj)
       }
-      // 监听成功事件，可监听事件queue,hash,uping,pause,success,error,finish,remove
-      myUpload.on('success', (obj) => {
-        console.log('success', obj)
-      })
+    })
+    // 监听成功事件，可监听事件queue,hash,uping,pause,success,error,finish,remove
+    myUpload.on('success', (obj) => {
+      console.log('success', obj)
     })
     function selectFile () {
       const files = this.event.target.files;

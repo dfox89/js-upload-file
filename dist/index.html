@@ -103,7 +103,7 @@
               console.log('beforeUpload', file, formData, xhr)
             },
             uploadCallback: (obj) => {
-              console.log(obj)
+              console.log('uploadCallback', obj)
             }
           })
         }
@@ -124,6 +124,31 @@
         }
       },
       created () {
+        console.log(this.myUpload)
+        this.myUpload.on('queue', (obj) => {
+          console.log('queue', obj)
+        })
+        this.myUpload.on('hash', (obj) => {
+          console.log('hash', obj)
+        })
+        this.myUpload.on('uping', (obj) => {
+          console.log('uping', obj)
+        })
+        this.myUpload.on('pause', (obj) => {
+          console.log('pause', obj)
+        })
+        this.myUpload.on('success', (obj) => {
+          console.log('success', obj)
+        })
+        this.myUpload.on('error', (obj) => {
+          console.log('error', obj)
+        })
+        this.myUpload.on('finish', (obj) => {
+          console.log('finish', obj)
+        })
+        this.myUpload.on('remove', (obj) => {
+          console.log('remove', obj)
+        })
       }
     }).mount('#counter')
   </script>

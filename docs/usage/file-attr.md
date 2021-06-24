@@ -4,7 +4,7 @@
 
 + 类型：`Object`
 
-原生文件对象
+原生File对象
 
 ## status
 

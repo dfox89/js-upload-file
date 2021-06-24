@@ -1,4 +1,4 @@
-# 示例
+# 完整示例
 
 ```html
 <!DOCTYPE html>
@@ -6,10 +6,8 @@
 <head>
   <meta charset="UTF-8">
   <title>demo</title>
-  <!-- 自定义生成hash -->
-  <!-- <script src="spark-md5.js"></script> -->
   <!-- js-upload-file -->
-  <script src="js-upload-file.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/js-upload-file@1/dist/js-upload-file.min.js"></script>
 </head>
 <body>
   <input type="file" name="file" multiple onchange="selectFile()">
@@ -19,32 +17,15 @@
     const myUpload = new JsUploadFile({
       server: '/file/upload', // 上传接口
       chunked: true, // 是否分片
-      chunkSize: 1 * 1024 * 1024, // 分片大小
-      maxParallel: 3, // 最大同时上传文件数
+      chunkSize: 2 * 1024 * 1024, // 分片大小
+      maxParallel: 2, // 最大同时上传文件数
       formDataKey: { // FormData使用的key
-        file: 'file',
-        hash: 'hash',
         chunk: 'chunkIndex',
-        chunks: 'chunksCount',
-        splitSize: 'splitSize',
-        name: 'name'
+        chunks: 'chunksCount'
       },
-      /* createHash: (file) => {
-        // 使用spark-md5生成文件hash
-        return new Promise((resolve) => {
-          const reader = new FileReader()
-          reader.readAsArrayBuffer(file)
-          reader.addEventListener('loadend', () => {
-            const spark = new SparkMD5.ArrayBuffer()
-            spark.append(reader.result)
-            resolve(spark.end())
-          })
-        })
-      }, */
       beforeUpload: (file, formData, xhr) => {
-        // formData.append('temp', 'tempValue')
-        // xhr.setRequestHeader('tempHead', 'tempHeadValue')
-        // xhr.withCredentials = true
+        formData.append('temp', 'tempValue')
+        xhr.setRequestHeader('tempHead', 'tempHeadValue')
         console.log('beforeUpload', file, formData, xhr)
       },
       uploadCallback: (obj) => {

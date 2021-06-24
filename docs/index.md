@@ -6,4 +6,5 @@
 ![license](https://img.shields.io/npm/l/js-upload-file?color=0000FF)
 [![last-commit](https://img.shields.io/github/last-commit/dfox89/js-upload-file?color=8B00FF)](https://github.com/dfox89/js-upload-file/commits/master)
 
-实现前端文件上传，分片上传，多文件同时上传，暂停及续传；<br>但上传按钮样式及上传文件类型，大小等需要自行控制及校验；
+实现前端文件上传，分片上传，多文件同时上传，暂停及续传；
+<br>但上传按钮样式及上传文件类型，大小等需要自行控制及校验；

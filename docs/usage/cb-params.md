@@ -1,6 +1,6 @@
-# 事件回调参数 Obj
+# 上传事件回调参数 Obj
 
-初始化uploadCallback，及on(event, callback)中callback回调参数的数据结构
+初始化配置项uploadCallback，及JsUploadFile实例on方法中callback回调参数，只有一个，且类型是Object，数据结构如下
 
 ## type
 
@@ -19,7 +19,7 @@
 
 ## file
 
-+ 类型：[File实例](attr-file.md)
++ 类型：[File实例](/usage/file-attr.md)
 
 文件，type为finish无此key
 

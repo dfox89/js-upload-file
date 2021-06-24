@@ -1,7 +1,9 @@
+/.github/
 /cache/
 /dist/plugins/
 /dist/analyzer-report.html
 /dist/index.html
+/docs/
 /node_modules/
 /src/
 /.browserslistrc

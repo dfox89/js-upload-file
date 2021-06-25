@@ -34,7 +34,16 @@
 ## on(event, callback)
 
 + 参数：
-  + event：必选 `String` 监听事件名，可监听事件名同uploadCallback[事件回调参数](/usage/cb-params.md)的type值
+  + event：必选 `String` 监听事件名，可监听事件名见下列
+    + queue：添加文件
+    + hash：某文件生成hash值中
+    + uping：某文件上传中
+    + pause：某文件上传暂停
+    + success：某文件上传成功
+    + error：某文件上传失败
+    + finish：全部上传完成，无论成功失败
+    + remove：某文件移除
+    + all：以上全部事件
   + callback：必选 `(obj) => {}` 监听回调，回调参数obj见[事件回调参数](/usage/cb-params.md)
 
 监听文件事件

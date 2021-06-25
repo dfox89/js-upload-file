@@ -150,6 +150,12 @@
         this.myUpload.on('remove', (obj) => {
           console.log('remove', obj)
         })
+        this.myUpload.on(['queue', 'success'], (obj) => {
+          console.log('queue,success', obj)
+        })
+        this.myUpload.on('all', (obj) => {
+          console.log('all', obj)
+        })
       }
     }).mount('#counter')
   </script>

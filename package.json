@@ -18,7 +18,7 @@
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/dfox89/js-upload-file"
+    "url": "git@github.com:dfox89/js-upload-file.git"
   },
   "license": "MIT",
   "devDependencies": {

@@ -60,9 +60,9 @@
           <td>{{one.status}}</td>
           <td>{{one.chunkSendedCount / one.chunkCount}}</td>
           <td>
-            <button @click="startUpload([one])" v-if="['queue', 'pause', 'error'].indexOf(one.status) > -1">开始上传</button>
-            <button @click="stopUpload([one])" v-if="['wait', 'hash', 'uping'].indexOf(one.status) > -1">暂停</button>
-            <button @click="removeFile([one])">移除</button>
+            <button @click="startUpload(one)" v-if="['queue', 'pause', 'error'].indexOf(one.status) > -1">开始上传</button>
+            <button @click="stopUpload(one.id)" v-if="['wait', 'hash', 'uping'].indexOf(one.status) > -1">暂停</button>
+            <button @click="removeFile([one.id])">移除</button>
           </td>
         </tr>
       </tbody>

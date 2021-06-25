@@ -1,5 +1,11 @@
 # File实例属性
 
+## id
+
++ 类型：`String`
+
+唯一标识
+
 ## file
 
 + 类型：`Object`

@@ -18,9 +18,8 @@ class eventObj {
   on (value, callback) {
     if (value === 'all') { // all
       this._bindEvent(allEvent, callback)
-    } else if (typeof value === 'string') { // string
-      this._bindEvent([value], callback)
-    } else { // array
+    } else {
+      if (Object.prototype.toString.call(value) !== '[object Array]') value = [value]
       this._bindEvent(value, callback)
     }
   }

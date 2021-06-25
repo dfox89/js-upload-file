@@ -77,6 +77,7 @@
             chunked: true, // 是否分片
             chunkSize: 1 * 1024 * 1024, // 分片大小
             maxParallel: 3, // 最大同时上传文件数
+            retry: 4, // 失败重试次数
             formDataKey: { // FormData使用的key
               file: 'file',
               hash: 'hash',

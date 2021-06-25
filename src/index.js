@@ -8,6 +8,7 @@ const defaultOpts = {
   chunked: false, // 是否分片
   chunkSize: 1 * 1024 * 1024, // 分片大小
   maxParallel: 3, // 最大同时上传文件数
+  retry: 0, // 失败重试次数
   formDataKey: { // FormData使用的key
     file: 'file',
     hash: 'hash',
@@ -23,6 +24,11 @@ const defaultOpts = {
 
 class Upload {
   constructor (opts) {
+    this.isUploading = false // 是否正在上传
+    this.fileList = [] // 文件列表
+
+    this._fetchList = [] // 上传队列
+    this._fetchedIndex = 0 // 已处理到上传队列的序号
     this._config = {}
     for (const key in defaultOpts) {
       if (key === 'formDataKey' && opts[key]) {
@@ -34,13 +40,8 @@ class Upload {
         this._config[key] = opts[key] || defaultOpts[key]
       }
     }
-    this.isUploading = false // 是否正在上传
-    this.fileList = [] // 文件列表
-    this._fetchList = [] // 上传队列
-    this._fetchedIndex = 0 // 已处理到上传队列的序号
 
     this._eventObj = new ClassEvent()
-
     this._controlPromise = new ClassControlPromise(() => {
       this._fetchList.splice(this._fetchList.indexOf(this._controlPromise.p), 1)
     })
@@ -60,14 +61,7 @@ class Upload {
   // 添加文件到上传队列
   addFile (value) {
     for (let i = 0; i < value.length; i++) {
-      const oneFile = new ClassFile(
-        value[i],
-        this._config.formDataKey,
-        this._config.chunked ? this._config.chunkSize : value[i].size,
-        this._triggerEvent.bind(this),
-        this._config.beforeUpload,
-        this._config.createHash
-      )
+      const oneFile = new ClassFile(value[i], this._triggerEvent.bind(this), this._config)
       this.fileList.push(oneFile)
       this._triggerEvent({
         type: 'queue',
@@ -177,6 +171,7 @@ class Upload {
     this._fetchList.push(oneRequest)
     oneRequest.then((response) => {
       this._fetchList.splice(this._fetchList.indexOf(oneRequest), 1)
+      oneFile._retried = 0
       this._triggerEvent({
         type: 'success',
         file: oneFile,
@@ -185,28 +180,38 @@ class Upload {
     }).catch((er) => {
       this._fetchList.splice(this._fetchList.indexOf(oneRequest), 1)
       if (oneFile.status === 'remove') {
+        oneFile._retried = 0
         this._triggerEvent({
           type: 'remove',
           file: oneFile
         })
       } else {
         if (er && er.message === 'abort') {
+          oneFile._retried = 0
           this._triggerEvent({
             type: 'pause',
             file: oneFile
           })
         } else if (er && er.message === 'control-pormise-reject') {
+          oneFile._retried = 0
           this._triggerEvent({
             type: 'pause',
             file: oneFile
           })
         } else {
           oneFile.setStatus('error')
-          this._triggerEvent({
-            type: 'error',
-            file: oneFile,
-            value: er
-          })
+          if (oneFile._retried < oneFile._retry) {
+            oneFile._retried++
+            // 失败重试
+            this._initWaitFileAndIndex([oneFile])
+          } else {
+            oneFile._retried = 0
+            this._triggerEvent({
+              type: 'error',
+              file: oneFile,
+              value: er
+            })
+          }
         }
       }
     })

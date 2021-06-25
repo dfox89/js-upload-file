@@ -1,19 +1,22 @@
 import ClassControlPromise from './class-control-promise.js'
 
 class FileObj {
-  constructor (file, formDataKey, chunkSize, triggerEvent, beforeUpload, createHash) {
+  constructor (file, triggerEvent, config) {
     this.file = file // js文件对象
     this.status = 'queue' // 状态（queue待上传，wait等待上传队列，hash生成哈希值中，uping上传中，pause上传暂停，success上传成功，error上传失败，remove即将从fileList中移除）
     this.hash = '' // 哈希值
-    this.chunkSize = chunkSize // 分片大小，若不分片则就是文件大小
-    this.chunkCount = Math.ceil(file.size / chunkSize) // 分片数，若不分片则就是1
+    this.chunkSize = config.chunked ? config.chunkSize : file.size // 分片大小，若不分片则就是文件大小
+    this.chunkCount = Math.ceil(file.size / this.chunkSize) // 分片数，若不分片则就是1
     this.chunkSendedCount = 0 // 已上传分片数
-    this._chunkArr = this._splitFile(file, chunkSize, this.chunkCount) // 分片数组
-    this._formDataKey = formDataKey // FormData使用的key
-    this._triggerEvent = triggerEvent // 上传进度事件触发
-    this._beforeUpload = beforeUpload // 发送上传请求前
-    this._createHash = createHash // 传入的生成文件hash值方法
     this.response = null // 文件上传成功，后台返回值
+
+    this._retried = 0 // 失败后，已重新尝试的次数
+    this._retry = config.retry // 失败重试次数
+    this._chunkArr = this._splitFile(file, this.chunkSize, this.chunkCount) // 分片数组
+    this._formDataKey = config.formDataKey // FormData使用的key
+    this._triggerEvent = triggerEvent // 上传进度事件触发
+    this._beforeUpload = config.beforeUpload // 发送上传请求前
+    this._createHash = config.createHash // 传入的生成文件hash值方法
     this._xhr = null // js原生请求实例
 
     this._controlPromise = new ClassControlPromise()
@@ -90,6 +93,7 @@ class FileObj {
     formData.append(this._formDataKey.name, this.file.name)
     return this._ajaxRequest(server, formData).then((response) => {
       this.chunkSendedCount++
+      this._retried = 0
       this._triggerEvent({
         type: 'uping',
         file: this,

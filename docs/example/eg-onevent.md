@@ -71,7 +71,7 @@ myUpload.on('success', (obj) => {
   console.log('success-2', obj)
 })
 // 监听上传添加文件/成功事件
-myUpload.on(['queue', 'success', (obj) => {
+myUpload.on(['queue', 'success'], (obj) => {
   console.log('queue,success-3', obj)
 })
 ```

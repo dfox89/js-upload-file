@@ -1,4 +1,3 @@
-- [首页](/index.md)
 - 使用
   - [安装](/usage/install.md)
   - [初始化](/usage/init.md)

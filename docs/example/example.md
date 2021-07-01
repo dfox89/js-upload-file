@@ -6,7 +6,7 @@
 <head>
   <meta charset="UTF-8">
   <title>demo</title>
-  <!-- js-upload-file -->
+  <!-- 第三方cdn引入js-upload-file -->
   <script src="//cdn.jsdelivr.net/npm/js-upload-file@1/dist/js-upload-file.min.js"></script>
 </head>
 <body>
@@ -19,6 +19,7 @@
       chunked: true, // 是否分片
       chunkSize: 2 * 1024 * 1024, // 分片大小
       maxParallel: 2, // 最大同时上传文件数
+      retry: 4, // 失败重试次数
       formDataKey: { // FormData使用的key
         chunk: 'chunkIndex',
         chunks: 'chunksCount'

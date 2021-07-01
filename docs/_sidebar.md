@@ -1,4 +1,3 @@
-- [首页](/index.md)
 - 使用
   - [安装](/usage/install.md)
   - [初始化](/usage/init.md)
@@ -14,5 +13,6 @@
   - [createHash示例](/example/eg-createHash.md)
   - [beforeUpload示例](/example/eg-beforeUpload.md)
   - [uploadCallback示例](/example/eg-uploadCallback.md)
+  - [on监听事件示例](/example/eg-onevent.md)
 - 更新日志
   - [v1](/version/v1.md)

@@ -47,6 +47,10 @@ koaWebpack({
   }))
   
   router.post('/file/upload', async (ctx, next) => {
+    // 测试随机失败
+    /* if (Math.floor(Math.random() * 10) < 5) {
+      throw new Error('handorwer')
+    } */
     ctx.body = {
       code: 200,
       nowTime: new Date().getTime(),

@@ -1,6 +1,6 @@
 {
   "name": "js-upload-file",
-  "version": "1.1.3",
+  "version": "1.2.0",
   "main": "dist/js-upload-file.min.js",
   "scripts": {
     "dev": "cross-env NODE_ENV=development ./node_modules/.bin/nodemon ./server.js",
@@ -18,7 +18,7 @@
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/dfox89/js-upload-file"
+    "url": "git@github.com:dfox89/js-upload-file.git"
   },
   "license": "MIT",
   "devDependencies": {

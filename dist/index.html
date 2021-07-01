@@ -60,9 +60,9 @@
           <td>{{one.status}}</td>
           <td>{{one.chunkSendedCount / one.chunkCount}}</td>
           <td>
-            <button @click="startUpload([one])" v-if="['queue', 'pause', 'error'].indexOf(one.status) > -1">开始上传</button>
-            <button @click="stopUpload([one])" v-if="['wait', 'hash', 'uping'].indexOf(one.status) > -1">暂停</button>
-            <button @click="removeFile([one])">移除</button>
+            <button @click="startUpload(one)" v-if="['queue', 'pause', 'error'].indexOf(one.status) > -1">开始上传</button>
+            <button @click="stopUpload(one.id)" v-if="['wait', 'hash', 'uping'].indexOf(one.status) > -1">暂停</button>
+            <button @click="removeFile([one.id])">移除</button>
           </td>
         </tr>
       </tbody>
@@ -77,6 +77,7 @@
             chunked: true, // 是否分片
             chunkSize: 1 * 1024 * 1024, // 分片大小
             maxParallel: 3, // 最大同时上传文件数
+            retry: 4, // 失败重试次数
             formDataKey: { // FormData使用的key
               file: 'file',
               hash: 'hash',
@@ -148,6 +149,12 @@
         })
         this.myUpload.on('remove', (obj) => {
           console.log('remove', obj)
+        })
+        this.myUpload.on(['queue', 'success'], (obj) => {
+          console.log('queue,success', obj)
+        })
+        this.myUpload.on('all', (obj) => {
+          console.log('all', obj)
         })
       }
     }).mount('#counter')

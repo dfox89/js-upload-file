@@ -8,6 +8,7 @@ const defaultOpts = {
   chunked: false, // 是否分片
   chunkSize: 1 * 1024 * 1024, // 分片大小
   maxParallel: 3, // 最大同时上传文件数
+  retry: 0, // 失败重试次数
   formDataKey: { // FormData使用的key
     file: 'file',
     hash: 'hash',
@@ -23,6 +24,12 @@ const defaultOpts = {
 
 class Upload {
   constructor (opts) {
+    this.isUploading = false // 是否正在上传
+    this.fileList = [] // 文件列表
+
+    this._uniqueNum = 0 // 用于生成文件唯一标识，此值用于文件开始暂停等传入辨别是哪个文件
+    this._fetchList = [] // 上传队列
+    this._fetchedIndex = 0 // 已处理到上传队列的序号
     this._config = {}
     for (const key in defaultOpts) {
       if (key === 'formDataKey' && opts[key]) {
@@ -34,13 +41,8 @@ class Upload {
         this._config[key] = opts[key] || defaultOpts[key]
       }
     }
-    this.isUploading = false // 是否正在上传
-    this.fileList = [] // 文件列表
-    this._fetchList = [] // 上传队列
-    this._fetchedIndex = 0 // 已处理到上传队列的序号
 
     this._eventObj = new ClassEvent()
-
     this._controlPromise = new ClassControlPromise(() => {
       this._fetchList.splice(this._fetchList.indexOf(this._controlPromise.p), 1)
     })
@@ -62,17 +64,16 @@ class Upload {
     for (let i = 0; i < value.length; i++) {
       const oneFile = new ClassFile(
         value[i],
-        this._config.formDataKey,
-        this._config.chunked ? this._config.chunkSize : value[i].size,
         this._triggerEvent.bind(this),
-        this._config.beforeUpload,
-        this._config.createHash
+        this._config,
+        this._uniqueNum
       )
       this.fileList.push(oneFile)
       this._triggerEvent({
         type: 'queue',
         file: oneFile
       })
+      this._uniqueNum++
     }
   }
 
@@ -103,8 +104,9 @@ class Upload {
   pause (value) {
     const statusArr = ['wait', 'hash', 'uping'] // 这些状态的文件才会设置为pause
     if (value) {
+      if (Object.prototype.toString.call(value) !== '[object Array]') value = [value]
       for (let i = 0; i < value.length; i++) {
-        const oneFile = value[i]
+        const oneFile = this._findFileObj(value[i])
         if (statusArr.indexOf(oneFile.status) > -1) oneFile.pause()
       }
     } else {
@@ -118,8 +120,9 @@ class Upload {
   // 移除文件
   remove (value) {
     if (value) {
+      if (Object.prototype.toString.call(value) !== '[object Array]') value = [value]
       for (let i = 0; i < value.length; i++) {
-        const oneFile = value[i]
+        const oneFile = this._findFileObj(value[i])
         this.fileList.splice(this.fileList.indexOf(oneFile), 1)
         oneFile.remove()
       }
@@ -137,8 +140,9 @@ class Upload {
   _initWaitFileAndIndex (value) {
     const statusArr = ['queue', 'pause', 'error'] // 这些状态的文件才会设置为wait
     if (value) {
+      if (Object.prototype.toString.call(value) !== '[object Array]') value = [value]
       for (let i = 0; i < value.length; i++) {
-        const oneFile = value[i]
+        const oneFile = this._findFileObj(value[i])
         if (statusArr.indexOf(oneFile.status) > -1) {
           oneFile.setStatus('wait')
           this._fetchedIndex = Math.min(this._fetchedIndex, this.fileList.indexOf(oneFile))
@@ -177,6 +181,7 @@ class Upload {
     this._fetchList.push(oneRequest)
     oneRequest.then((response) => {
       this._fetchList.splice(this._fetchList.indexOf(oneRequest), 1)
+      oneFile._retried = 0
       this._triggerEvent({
         type: 'success',
         file: oneFile,
@@ -185,28 +190,38 @@ class Upload {
     }).catch((er) => {
       this._fetchList.splice(this._fetchList.indexOf(oneRequest), 1)
       if (oneFile.status === 'remove') {
+        oneFile._retried = 0
         this._triggerEvent({
           type: 'remove',
           file: oneFile
         })
       } else {
         if (er && er.message === 'abort') {
+          oneFile._retried = 0
           this._triggerEvent({
             type: 'pause',
             file: oneFile
           })
         } else if (er && er.message === 'control-pormise-reject') {
+          oneFile._retried = 0
           this._triggerEvent({
             type: 'pause',
             file: oneFile
           })
         } else {
           oneFile.setStatus('error')
-          this._triggerEvent({
-            type: 'error',
-            file: oneFile,
-            value: er
-          })
+          if (oneFile._retried < oneFile._retry) {
+            oneFile._retried++
+            // 失败重试
+            this._initWaitFileAndIndex([oneFile])
+          } else {
+            oneFile._retried = 0
+            this._triggerEvent({
+              type: 'error',
+              file: oneFile,
+              value: er
+            })
+          }
         }
       }
     })
@@ -216,6 +231,18 @@ class Upload {
       return Promise.race(this._fetchList).then(() => this._toFetch()).catch(() => this._toFetch())
     } else {
       return Promise.resolve().then(() => this._toFetch())
+    }
+  }
+
+  // 根据传入值（可能为id或File实例），返回对应的File实例
+  _findFileObj (value) {
+    if (typeof value === 'string') { // 传入File实例的id
+      for (let i = 0; i < this.fileList.length; i++) {
+        if (this.fileList[i].id === value) return this.fileList[i]
+      }
+      return null // 未找到
+    } else { // 传入的就是File实例
+      return value
     }
   }
 }

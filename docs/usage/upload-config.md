@@ -48,7 +48,7 @@
 | file | `String` | file | 文件 |
 | hash | `String` | hash | hash值 |
 | chunk | `String` | chunk | 分片序号，从0开始 |
-| chunks | `String` | chunk | 总分片数，不分片则为1 |
+| chunks | `String` | chunks | 总分片数，不分片则为1 |
 | splitSize | `String` | splitSize | 分片大小 |
 | name | `String` | name | 文件名 |
 

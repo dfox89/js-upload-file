@@ -46,7 +46,7 @@ myUpload.on(['queue', 'hash', 'uping', 'pause', 'success', 'error', 'finish', 'r
 const myUpload = new JsUploadFile({
   // 配置项
 })
-// 监听上传成功事件
+// 监听添加文件，创建hash值事件
 myUpload.on(['queue', 'hash'], (obj) => {
   console.log('queue,hash', obj)
 })

@@ -5,6 +5,8 @@ import ClassEvent from './class-event.js'
 // 默认配置
 const defaultOpts = {
   server: null, // 上传接口
+  auto: false, // 新添加的文件是否自动上传（之前添加的暂停/错误的文件不会自动再次尝试上传）
+  file: [], // 初始化就加入上传的文件
   chunked: false, // 是否分片
   chunkSize: 1 * 1024 * 1024, // 分片大小
   maxParallel: 3, // 最大同时上传文件数
@@ -32,6 +34,7 @@ class Upload {
     this._fetchedIndex = 0 // 已处理到上传队列的序号
     this._config = {}
     for (const key in defaultOpts) {
+      if (key === 'file') continue // file在最后处理
       if (key === 'formDataKey' && opts[key]) {
         this._config[key] = defaultOpts[key]
         for (const subkey in this._config[key]) {
@@ -46,6 +49,9 @@ class Upload {
     this._controlPromise = new ClassControlPromise(() => {
       this._fetchList.splice(this._fetchList.indexOf(this._controlPromise.p), 1)
     })
+
+    // 初始化文件到队列
+    if (opts.file && opts.file.length > 0) this.addFile(opts.file)
   }
 
   // 绑定事件监听
@@ -61,6 +67,7 @@ class Upload {
 
   // 添加文件到上传队列
   addFile (value) {
+    const newAdded = []
     for (let i = 0; i < value.length; i++) {
       const oneFile = new ClassFile(
         value[i],
@@ -69,12 +76,15 @@ class Upload {
         this._uniqueNum
       )
       this.fileList.push(oneFile)
+      newAdded.push(oneFile)
       this._triggerEvent({
         type: 'queue',
         file: oneFile
       })
       this._uniqueNum++
     }
+    // 新添加的文件自动上传
+    if (this._config.auto) this.start(newAdded)
   }
 
   // 开始上传

@@ -71,7 +71,7 @@ class FileObj {
         this._triggerEvent({
           type: 'uping',
           file: this,
-          value: 0
+          value: this.chunkSendedCount / this.chunkCount
         })
         return this._sendUpload(server)
       }).then((response) => {

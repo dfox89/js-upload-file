@@ -64,7 +64,10 @@ class Upload {
       this.isUploading = true
       this._runFetch().then(() => {
         this.isUploading = false
-        console.log('event-finish')
+        return this._triggerEvent({
+          type: 'finish'
+        })
+        // console.log('event-finish')
       })
     }
   }
@@ -84,7 +87,7 @@ class Upload {
 
   // 触发事件
   _triggerEvent (obj) {
-    this._eventObj.trigger(obj.type, obj)
+    return this._eventObj.trigger(obj.type, obj)
   }
 
   // 合并初始化配置
@@ -161,21 +164,29 @@ class Upload {
       return Promise.resolve()
     } else {
       const oneAddFile = this._addQueusList.shift()
+      const oneFile = new ClassFile(
+        oneAddFile,
+        this._uniqueNum,
+        this._config.chunked ? this._config.chunkSize : oneAddFile.size,
+        this._config.server,
+        this._config.maxAjaxParallel,
+        this._config.formDataKey,
+        this._config.maxRetry,
+        this._triggerEvent.bind(this)
+      )
       return Promise.resolve().then(() => {
-        const oneFile = new ClassFile(
-          oneAddFile,
-          this._uniqueNum,
-          this._config.chunked ? this._config.chunkSize : oneAddFile.size,
-          this._config.server,
-          this._config.maxAjaxParallel,
-          this._config.formDataKey,
-          this._config.maxRetry
-        )
-        console.log('event-beforeAdd')
+        return this._triggerEvent({
+          type: 'beforeAdd'
+        })
+        // console.log('event-beforeAdd')
+      }).then(() => {
         this.fileList.push(oneFile)
         this._newAdded.push(oneFile)
         this._uniqueNum++
-        console.log('event-afterAdd')
+        return this._triggerEvent({
+          type: 'afterAdd'
+        })
+        // console.log('event-afterAdd')
       }).then(() => {
         return this._addFileFetch()
       })

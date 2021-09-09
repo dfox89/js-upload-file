@@ -134,10 +134,15 @@
         })
         this.myUpload.on(['queue', 'success'], (obj) => {
           console.log('queue,success', obj)
-        })
-        this.myUpload.on('all', (obj) => {
-          console.log('all', obj)
         }) */
+        this.myUpload.on('all', (obj) => {
+          return new Promise((resolve, reject) => {
+            setTimeout(() => {
+              console.log(obj.type)
+              resolve()
+            }, 3000)
+          })
+        })
       }
     }).mount('#counter')
   </script>

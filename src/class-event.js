@@ -33,7 +33,7 @@ class eventObj {
 
   // 触发事件
   trigger (eventName, value) {
-    if (!this._eventList[eventName]) return
+    if (!this._eventList[eventName]) return Promise.resolve()
     for (let i = 0; i < this._eventList[eventName].length; i++) {
       this._queueList.push(this._eventList[eventName][i])
     }

@@ -27,14 +27,20 @@
     .filetable tbody tr:nth-child(even){
       background-color: transparent;
     }
+    .filetable .limit-height{
+      line-height: 24px;
+      max-height: 72px;
+      overflow-y: auto;
+    }
   </style>
 </head>
 <body>
   <div id="counter">
     <input type="file" name="file" multiple @change="selectFile($event)">
-    <button @click="stopUpload()" v-if="myUpload.isUploading">暂停上传</button>
-    <button @click="startUpload()" v-else>开始上传</button>
-    &nbsp;<span>{{myUpload.fetchedIndex}}</span>&nbsp;
+    <button @click="startUpload()">开始上传</button>
+    &nbsp;&nbsp;
+    <button @click="stopUpload()">暂停上传</button>
+    &nbsp;&nbsp;
     <button @click="removeFile()">全部移除</button>
     <table class="filetable">
       <colgroup>
@@ -56,9 +62,13 @@
       <tbody>
         <tr v-for="one in myUpload.fileList">
           <td>{{one.file.name}}</td>
-          <td>{{one.response ? one.response.data : ''}}</td>
+          <td>
+            <div class="limit-height">
+              <div v-for="subone in one.chunkResponse">{{subone.data}}</div>
+            </div>
+          </td>
           <td>{{one.status}}</td>
-          <td>{{one.chunkSendedCount / one.chunkCount}}</td>
+          <td>{{one.sendedChunk.length / one.chunkCount}}</td>
           <td>
             <button @click="startUpload(one)" v-if="['queue', 'pause', 'error'].indexOf(one.status) > -1">开始上传</button>
             <button @click="stopUpload(one.id)" v-if="['wait', 'hash', 'uping'].indexOf(one.status) > -1">暂停</button>
@@ -138,9 +148,9 @@
         this.myUpload.on('all', (obj) => {
           return new Promise((resolve, reject) => {
             setTimeout(() => {
-              console.log(obj.type)
+              console.log(obj.type, obj)
               resolve()
-            }, 3000)
+            }, 150)
           })
         })
       }

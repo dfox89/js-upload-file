@@ -1,5 +1,6 @@
 import ClassFile from './class-file.js'
 import ClassEvent from './class-event.js'
+import ClassControlPromise from './class-control-promise.js'
 
 // 默认配置
 const defaultOpts = {
@@ -27,13 +28,17 @@ class Upload {
     this.fileList = [] // 文件列表
 
     this._config = this._extendConfig(defaultOpts, opts)
-    this._eventObj = new ClassEvent()
     this._uniqueNum = 0 // 用于生成文件唯一标识，此值用于文件开始暂停等传入辨别是哪个文件
 
     this._newAdded = [] // 新增加的文件
     this._addQueusList = [] // 文件添加队列
     this._queueList = [] // 文件上传队列
     this._fetchList = [] // 正在上传的文件队列
+
+    this._eventObj = new ClassEvent()
+    this._controlPromise = new ClassControlPromise(() => {
+      this._fetchList.splice(this._fetchList.indexOf(this._controlPromise.p), 1)
+    })
 
     // 初始化文件到队列
     if (opts.file && opts.file.length > 0) this.addFile(opts.file)
@@ -59,6 +64,9 @@ class Upload {
   // 开始上传
   start (value) {
     this._initQueue(value) // 初始化文件上传队列
+    this._controlPromise.resolve()
+    this._controlPromise.init()
+    this._fetchList.push(this._controlPromise.p)
     // 未在上传，则开始上传队列
     if (!this.isUploading) {
       this.isUploading = true
@@ -138,20 +146,31 @@ class Upload {
   _runFetch () {
     if (this._queueList.length === 0) { // 所有文件均已发送请求
       if (this._fetchList.length === 0) {
+        // 这里永远不会进，当长度为1时就已resolve了
+        return Promise.resolve()
+      } else if (this._fetchList.length === 1) {
+        // 只剩一个自定义控制的promise
+        this._controlPromise.resolve()
         return Promise.resolve()
       } else {
         return Promise.race(this._fetchList).finally(() => this._runFetch())
       }
     } else {
-      const oneFile = this._queueList.shift()
-      const oneRequest = oneFile._start()
-      this._fetchList.push(oneRequest)
-      oneRequest.finally(() => {
-        // 某文件上传完成，无论成功失败
-        this._fetchList.splice(this._fetchList.indexOf(oneRequest), 1)
-      })
-      if (this._fetchList.length < this._config.maxFileParallel) {
-        return Promise.resolve().then(() => this._runFetch())
+      // _fetchList中有个固定的_controlPromise，需要-1
+      if (this._fetchList.length - 1 < this._config.maxFileParallel) { // 未到最大同时上传文件数
+        const oneFile = this._queueList.shift()
+        const oneRequest = oneFile._start()
+        this._fetchList.push(oneRequest)
+        oneRequest.finally(() => {
+          // 某文件上传完成，无论成功失败
+          this._fetchList.splice(this._fetchList.indexOf(oneRequest), 1)
+        })
+        // _fetchList中有个固定的_controlPromise，需要-1
+        if (this._fetchList.length - 1 < this._config.maxFileParallel) {
+          return Promise.resolve().then(() => this._runFetch())
+        } else {
+          return Promise.race(this._fetchList).finally(() => this._runFetch())
+        }
       } else {
         return Promise.race(this._fetchList).finally(() => this._runFetch())
       }
@@ -176,7 +195,8 @@ class Upload {
       )
       return Promise.resolve().then(() => {
         return this._triggerEvent({
-          type: 'beforeAdd'
+          type: 'beforeAdd',
+          file: oneFile
         })
         // console.log('event-beforeAdd')
       }).then(() => {
@@ -184,10 +204,11 @@ class Upload {
         this._newAdded.push(oneFile)
         this._uniqueNum++
         return this._triggerEvent({
-          type: 'afterAdd'
+          type: 'afterAdd',
+          file: oneFile
         })
         // console.log('event-afterAdd')
-      }).then(() => {
+      }).finally(() => {
         return this._addFileFetch()
       })
     }

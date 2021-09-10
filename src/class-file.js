@@ -4,8 +4,8 @@ class FileObj {
     this.id = 'file_' + uniqueNum // 文件唯一标识
     this.status = 'queue' // 状态（queue待上传，wait等待上传队列，hash生成哈希值中，uping上传中，pause上传暂停，success上传成功，error上传失败，remove即将从fileList中移除）
     this.hash = '' // 唯一哈希值
-    this.response = null // 文件上传成功，后台返回值
 
+    this.chunkResponse = [] // 每一分片上传成功后的返回值
     this.chunkSize = chunkSize // 分片大小，若不分片则就是文件大小
     this.chunkCount = Math.ceil(file.size / chunkSize) // 分片数，若不分片则就是1
     this.sendedChunk = [] // 已上传的分片序号
@@ -27,7 +27,8 @@ class FileObj {
   _start () {
     return Promise.resolve().then(() => {
       return this._triggerEvent({
-        type: 'beforeHash'
+        type: 'beforeHash',
+        file: this
       })
       // console.log('event-beforeHash')
     }).then(() => {
@@ -36,7 +37,9 @@ class FileObj {
     }).then((hash) => {
       this.hash = hash
       return this._triggerEvent({
-        type: 'beforeUpFile'
+        type: 'beforeUpFile',
+        file: this,
+        hash: this.hash
       })
       // console.log('event-beforeUpFile')
     }).then(() => {
@@ -46,7 +49,9 @@ class FileObj {
     }).then(() => {
       this._setStatus('success')
       return this._triggerEvent({
-        type: 'success'
+        type: 'success',
+        file: this,
+        response: this.chunkResponse
       })
       // console.log('event-success')
     }).catch(() => {
@@ -97,10 +102,11 @@ class FileObj {
 
   // 分片ajax请求
   _ajaxRequest (chunk) {
+    const index = this._chunkArr.indexOf(chunk)
     const formData = new FormData()
     formData.append(this._formDataKey.file, chunk, this.file.name)
     formData.append(this._formDataKey.hash, this.hash)
-    formData.append(this._formDataKey.chunk, this._chunkArr.indexOf(chunk))
+    formData.append(this._formDataKey.chunk, index)
     formData.append(this._formDataKey.chunks, this.chunkCount)
     formData.append(this._formDataKey.splitSize, this.chunkSize)
     formData.append(this._formDataKey.name, this.file.name)
@@ -111,7 +117,12 @@ class FileObj {
     this._xhr.withCredentials = false
     // console.log('event-beforeUpChunk')
     return this._triggerEvent({
-      type: 'beforeUpChunk'
+      type: 'beforeUpChunk',
+      file: this,
+      chunkIndex: index,
+      chunk: chunk,
+      formData: formData,
+      xhr: this._xhr
     }).then(() => {
       return new Promise((resolve, reject) => {
         this._xhr.onreadystatechange = () => {
@@ -150,17 +161,26 @@ class FileObj {
       }
     } else {
       const oneChunk = this._queueList.shift()
-      const oneRequest = this._ajaxRequest(oneChunk)
-      this._fetchList.push(oneRequest)
-      oneRequest.then(() => {
+      const oneRequest = this._ajaxRequest(oneChunk).then((response) => {
         // 某分片上传成功
+        const index = this._chunkArr.indexOf(oneChunk)
         this._retried = 0
-        this.sendedChunk.push(this._chunkArr.indexOf(oneChunk))
+        this.sendedChunk.push(index)
+        this.chunkResponse[index] = response
         this._fetchList.splice(this._fetchList.indexOf(oneRequest), 1)
         return this._triggerEvent({
-          type: 'afterUpChunk'
+          type: 'afterUpChunk',
+          file: this,
+          chunkIndex: index,
+          chunk: oneChunk,
+          progress: this.sendedChunk.length / this.chunkCount,
+          response: response
         })
         // console.log('event-afterUpChunk')
+      })
+      this._fetchList.push(oneRequest)
+      oneRequest.then(() => {
+        // 分片上传回调执行完毕
       }).catch(() => {
         this._fetchList.splice(this._fetchList.indexOf(oneRequest), 1)
         // 某分片上传失败

@@ -16,7 +16,7 @@ class ControlPormise {
           if (this.p) {
             if (this._callback) this._callback()
             this.p = null
-            value === 'resolve' ? resolve() : reject(new Error(value))
+            value === 'control-resolve' ? resolve(value) : reject(value)
           }
           tempFlag = value
         }
@@ -25,11 +25,11 @@ class ControlPormise {
   }
 
   resolve () {
-    this.flag = 'resolve'
+    this.flag = 'control-resolve'
   }
 
   reject (value) {
-    this.flag = value || 'reject'
+    this.flag = value || 'control-reject'
   }
 }
 

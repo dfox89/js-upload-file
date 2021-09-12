@@ -64,7 +64,7 @@
           <td>{{one.file.name}}</td>
           <td>
             <div class="limit-height">
-              <div v-for="subone in one.chunkResponse">{{subone.data}}</div>
+              <!-- <div v-for="subone in one.chunkResponse">{{subone.data}}</div> -->
             </div>
           </td>
           <td>{{one.status}}</td>
@@ -89,7 +89,7 @@
             chunkSize: 1 * 1024 * 1024, // 分片大小
             maxFileParallel: 3, // 最大同时上传文件数
             maxAjaxParallel: 1, // 单个文件最大同时上传分片数
-            maxRetry: 4, // 失败重试次数
+            maxRetry: 3, // 失败重试次数
             formDataKey: { // FormData使用的key
               file: 'file',
               hash: 'hash',
@@ -149,7 +149,11 @@
           return new Promise((resolve, reject) => {
             setTimeout(() => {
               console.log(obj.type, obj)
-              resolve()
+              if (obj.type === 'beforeUpChunk') {
+                reject('回调自定义reject')
+              } else {
+                resolve()
+              }
             }, 150)
           })
         })

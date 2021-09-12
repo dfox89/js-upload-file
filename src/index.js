@@ -11,7 +11,7 @@ const defaultOpts = {
   chunkSize: 1 * 1024 * 1024, // 分片大小
   maxFileParallel: 3, // 最大同时上传文件数
   maxAjaxParallel: 2, // 单个文件最大同时上传分片数
-  maxRetry: 0, // 失败重试次数
+  maxRetry: 0, // 单个文件最大连续失败重试次数
   formDataKey: { // FormData使用的key
     file: 'file',
     hash: 'hash',
@@ -165,12 +165,7 @@ class Upload {
           // 某文件上传完成，无论成功失败
           this._fetchList.splice(this._fetchList.indexOf(oneRequest), 1)
         })
-        // _fetchList中有个固定的_controlPromise，需要-1
-        if (this._fetchList.length - 1 < this._config.maxFileParallel) {
-          return Promise.resolve().then(() => this._runFetch())
-        } else {
-          return Promise.race(this._fetchList).finally(() => this._runFetch())
-        }
+        return Promise.resolve().then(() => this._runFetch())
       } else {
         return Promise.race(this._fetchList).finally(() => this._runFetch())
       }

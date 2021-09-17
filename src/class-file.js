@@ -30,7 +30,8 @@ class FileObj {
     this._fetchList = [] // 正在上传的分片队列
 
     this._controlPromise = new ClassControlPromise(() => {
-      this._fetchList.splice(this._fetchList.indexOf(this._controlPromise.p), 1)
+      const index = this._fetchList.indexOf(this._controlPromise.p)
+      if (index > -1) this._fetchList.splice(index, 1)
     })
   }
 
@@ -71,7 +72,7 @@ class FileObj {
       })
       // console.log('event-success')
     }).catch((er) => {
-      this._resetAfterError() // 失败后重置文件相关变量
+      this._resetVariable() // 失败后重置文件相关变量
       this._setStatus('error')
       return this._triggerEvent({
         type: 'error',
@@ -86,6 +87,7 @@ class FileObj {
 
   // 取消上传
   _abort () {
+    // 根据文件状态取消，还需考虑事件回调的异步；
   }
 
   // 设置文件状态
@@ -120,7 +122,7 @@ class FileObj {
   }
 
   // 失败后重置文件相关变量
-  _resetAfterError () {
+  _resetVariable () {
     this._retried = 0
     this._queueList = []
     this._fetchList = []
@@ -182,7 +184,6 @@ class FileObj {
   _runFetch () {
     if (this._queueList.length === 0) { // 所有分片均已发送请求
       if (this._fetchList.length === 0) {
-        // 这里永远不会进，当长度为1时就已resolve了
         return Promise.resolve()
       } else if (this._fetchList.length === 1) {
         // 只剩一个自定义控制的promise
@@ -226,11 +227,11 @@ class FileObj {
               this._retried++
               this._queueList.unshift(oneChunk)
             } else { // 达到最大失败重试次数
-              this._resetAfterError() // 失败后重置文件相关变量
+              this._resetVariable() // 失败后重置文件相关变量
               return Promise.reject(er)
             }
           } else {
-            this._resetAfterError() // 失败后重置文件相关变量
+            this._resetVariable() // 失败后重置文件相关变量
             return Promise.reject(er)
           }
         })

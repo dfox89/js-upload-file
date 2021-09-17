@@ -37,7 +37,8 @@ class Upload {
 
     this._eventObj = new ClassEvent()
     this._controlPromise = new ClassControlPromise(() => {
-      this._fetchList.splice(this._fetchList.indexOf(this._controlPromise.p), 1)
+      const index = this._fetchList.indexOf(this._controlPromise.p)
+      if (index > -1) this._fetchList.splice(index, 1)
     })
 
     // 初始化文件到队列
@@ -146,7 +147,6 @@ class Upload {
   _runFetch () {
     if (this._queueList.length === 0) { // 所有文件均已发送请求
       if (this._fetchList.length === 0) {
-        // 这里永远不会进，当长度为1时就已resolve了
         return Promise.resolve()
       } else if (this._fetchList.length === 1) {
         // 只剩一个自定义控制的promise

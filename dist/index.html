@@ -88,7 +88,7 @@
             chunked: true, // 是否分片
             chunkSize: 1 * 1024 * 1024, // 分片大小
             maxFileParallel: 3, // 最大同时上传文件数
-            maxAjaxParallel: 1, // 单个文件最大同时上传分片数
+            maxAjaxParallel: 4, // 单个文件最大同时上传分片数
             maxRetry: 3, // 失败重试次数
             formDataKey: { // FormData使用的key
               file: 'file',
@@ -110,7 +110,7 @@
           this.myUpload.start(value)
         },
         stopUpload (value) {
-          // this.myUpload.pause(value)
+          this.myUpload.pause(value)
         },
         removeFile (value) {
           // this.myUpload.remove(value)
@@ -150,7 +150,7 @@
             setTimeout(() => {
               console.log(obj.type, obj)
               if (obj.type === 'beforeUpChunk') {
-                reject('回调自定义reject')
+                resolve('回调自定义reject')
               } else {
                 resolve()
               }

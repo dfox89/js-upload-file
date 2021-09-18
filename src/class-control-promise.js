@@ -1,11 +1,12 @@
 class ControlPormise {
-  constructor (callback) {
-    this.p = null
-    this._callback = callback
+  constructor () {
+    this._p = null
+    this._callback = null
   }
 
   init () {
-    this.p = new Promise((resolve, reject) => {
+    this._callback = null
+    this._p = new Promise((resolve, reject) => {
       let tempFlag = 'pending'
       Object.defineProperty(this, 'flag', {
         configurable: true,
@@ -13,22 +14,25 @@ class ControlPormise {
           return tempFlag
         },
         set: (value) => {
-          if (this.p) {
+          if (this._p) {
             if (this._callback) this._callback()
-            this.p = null
             value === 'control-resolve' ? resolve(value) : reject(value)
           }
+          this._p = null
+          this._callback = null
           tempFlag = value
         }
       })
     })
   }
 
-  resolve () {
+  resolve (callback) {
+    this._callback = callback
     this.flag = 'control-resolve'
   }
 
-  reject (value) {
+  reject (value, callback) {
+    this._callback = callback
     this.flag = value || 'control-reject'
   }
 }

@@ -36,10 +36,7 @@ class Upload {
     this._fetchList = [] // 正在上传的文件队列
 
     this._eventObj = new ClassEvent()
-    this._controlPromise = new ClassControlPromise(() => {
-      const index = this._fetchList.indexOf(this._controlPromise.p)
-      if (index > -1) this._fetchList.splice(index, 1)
-    })
+    this._controlPromise = new ClassControlPromise()
 
     // 初始化文件到队列
     if (opts.file && opts.file.length > 0) this.addFile(opts.file)
@@ -65,12 +62,17 @@ class Upload {
   // 开始上传
   start (value) {
     this._initQueue(value) // 初始化文件上传队列
-    this._controlPromise.resolve()
-    this._controlPromise.init()
-    this._fetchList.push(this._controlPromise.p)
-    // 未在上传，则开始上传队列
-    if (!this.isUploading) {
+    if (this.isUploading) {
+      this._controlPromise.resolve(() => {
+        const index = this._fetchList.indexOf(this._controlPromise._p)
+        if (index > -1) this._fetchList.splice(index, 1)
+      })
+      this._controlPromise.init()
+      this._fetchList.push(this._controlPromise._p)
+    } else { // 未在上传，则开始上传队列
       this.isUploading = true
+      this._controlPromise.init()
+      this._fetchList.push(this._controlPromise._p)
       this._runFetch().then(() => {
         this.isUploading = false
         return this._triggerEvent({
@@ -83,6 +85,18 @@ class Upload {
 
   // 暂停上传
   pause (value) {
+    const statusArr = ['wait', 'hash', 'uping'] // 这些状态的文件才会设置为pause
+    if (value && Object.prototype.toString.call(value) !== '[object Array]') {
+      value = [value]
+    }
+    const toDealFile = value || this.fileList
+    for (let i = 0; i < toDealFile.length; i++) {
+      const oneFile = this._findFileObj(toDealFile[i])
+      if (oneFile && statusArr.indexOf(oneFile.status) > -1) {
+        // bug无法暂停wait的文件
+        oneFile._abort()
+      }
+    }
   }
 
   // 移除上传
@@ -150,7 +164,7 @@ class Upload {
         return Promise.resolve()
       } else if (this._fetchList.length === 1) {
         // 只剩一个自定义控制的promise
-        this._controlPromise.resolve()
+        this._fetchList = []
         return Promise.resolve()
       } else {
         return Promise.race(this._fetchList).finally(() => this._runFetch())

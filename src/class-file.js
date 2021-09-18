@@ -29,40 +29,33 @@ class FileObj {
     this._queueList = [] // 分片上传队列
     this._fetchList = [] // 正在上传的分片队列
 
-    this._controlPromise = new ClassControlPromise(() => {
-      const index = this._fetchList.indexOf(this._controlPromise.p)
-      if (index > -1) this._fetchList.splice(index, 1)
-    })
+    this._controlPromise = new ClassControlPromise()
   }
 
   // 上传文件
   _start () {
+    this._controlPromise.init()
     return Promise.resolve().then(() => {
-      return this._triggerEvent({
+      return this._wrapControlPromise(this._triggerEvent({
         type: 'beforeHash',
         file: this
-      })
+      }))
       // console.log('event-beforeHash')
     }).then(() => {
       this._setStatus('hash')
-      this._controlPromise.resolve()
-      this._controlPromise.init()
-      return this.hash ? this.hash : Promise.race([this._initHash(), this._controlPromise.p])
+      return this.hash ? this.hash : this._initHash()
     }).then((hash) => {
       this.hash = hash
-      return this._triggerEvent({
+      return this._wrapControlPromise(this._triggerEvent({
         type: 'beforeUpFile',
         file: this,
         hash: this.hash
-      })
+      }))
       // console.log('event-beforeUpFile')
     }).then(() => {
       this._setStatus('uping')
       this._initQueue()
-      this._controlPromise.resolve()
-      this._controlPromise.init()
-      this._fetchList.push(this._controlPromise.p)
-      return this._runFetch()
+      return this._wrapControlPromise(this._runFetch())
     }).then(() => {
       this._setStatus('success')
       return this._triggerEvent({
@@ -87,7 +80,16 @@ class FileObj {
 
   // 取消上传
   _abort () {
-    // 根据文件状态取消，还需考虑事件回调的异步；
+    this._controlPromise.reject(errorAbort)
+    if (this.status === 'uping') {
+      // 中止正在的请求
+      for (let i = 0; i < this._xhr.length; i++) {
+        if (this._xhr[i]) {
+          this._xhr[i].abort()
+        }
+      }
+    }
+    this._setStatus('pause')
   }
 
   // 设置文件状态
@@ -129,6 +131,14 @@ class FileObj {
     this._xhr = []
   }
 
+  // 包装成一个可手动resolve或reject的promise
+  _wrapControlPromise (value) {
+    return Promise.race([
+      value,
+      this._controlPromise._p
+    ])
+  }
+
   // 分片ajax请求
   _ajaxRequest (chunk) {
     const index = this._chunkArr.indexOf(chunk)
@@ -154,19 +164,22 @@ class FileObj {
       xhr: this._xhr[index]
     }).then(() => {
       return new Promise((resolve, reject) => {
-        this._xhr[index].onreadystatechange = () => {
-          if (this._xhr[index].readyState === 4) {
-            if (this._xhr[index].status === 200) {
-              resolve(this._xhr[index].response)
-            } else if (this._xhr[index].status !== 0) {
-              reject(errorMaxRetry) // promise返回最内层错误，无论是否达到报错就直接返回最大重试
+        // 外层promise提前中止，会导致不存在
+        if (this._xhr[index]) {
+          this._xhr[index].onreadystatechange = () => {
+            if (this._xhr[index].readyState === 4) {
+              if (this._xhr[index].status === 200) {
+                resolve(this._xhr[index].response)
+              } else if (this._xhr[index].status !== 0) {
+                reject(errorMaxRetry) // promise返回最内层错误，无论是否达到报错就直接返回最大重试
+              }
             }
           }
+          this._xhr[index].onabort = () => reject(errorAbort)
+          this._xhr[index].ontimeout = () => reject(errorTimeout)
+          this._xhr[index].onerror = () => reject(errorMaxRetry) // promise返回最内层错误，无论是否达到报错就直接返回最大重试
+          this._xhr[index].send(formData)
         }
-        this._xhr[index].onabort = () => reject(errorAbort)
-        this._xhr[index].ontimeout = () => reject(errorTimeout)
-        this._xhr[index].onerror = () => reject(errorMaxRetry) // promise返回最内层错误，无论是否达到报错就直接返回最大重试
-        this._xhr[index].send(formData)
       })
     })
   }
@@ -185,16 +198,11 @@ class FileObj {
     if (this._queueList.length === 0) { // 所有分片均已发送请求
       if (this._fetchList.length === 0) {
         return Promise.resolve()
-      } else if (this._fetchList.length === 1) {
-        // 只剩一个自定义控制的promise
-        this._controlPromise.resolve()
-        return Promise.resolve()
       } else {
         return Promise.race(this._fetchList).finally(() => this._runFetch())
       }
     } else {
-      // _fetchList中有个固定的_controlPromise，需要-1
-      if (this._fetchList.length - 1 < this._maxAjaxParallel) {
+      if (this._fetchList.length < this._maxAjaxParallel) {
         const oneChunk = this._queueList.shift()
         const oneRequest = this._ajaxRequest(oneChunk).then((response) => {
           // 某分片上传成功

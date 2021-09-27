@@ -9,7 +9,18 @@ class FileObj {
   constructor (file, uniqueNum, chunkSize, server, maxAjaxParallel, formDataKey, maxRetry, triggerEvent) {
     this.file = file // 原生文件对象
     this.id = 'file_' + uniqueNum // 文件唯一标识
-    this.status = 'queue' // 状态（queue待上传，wait等待上传队列，hash生成哈希值中，uping上传中，pause上传暂停，success上传成功，error上传失败，remove即将从fileList中移除）
+    /**
+     * 状态
+     * queue待上传
+     * wait等待上传队列
+     * hash生成哈希值中
+     * uping上传中
+     * pause上传暂停
+     * success上传成功
+     * error上传失败
+     * remove即将移除
+     */
+    this.status = 'queue'
     this.hash = '' // 唯一哈希值
 
     this.chunkResponse = [] // 每一分片上传成功后的返回值
@@ -40,7 +51,6 @@ class FileObj {
         type: 'beforeHash',
         file: this
       }))
-      // console.log('event-beforeHash')
     }).then(() => {
       this._setStatus('hash')
       return this.hash ? this.hash : this._initHash()
@@ -51,7 +61,6 @@ class FileObj {
         file: this,
         hash: this.hash
       }))
-      // console.log('event-beforeUpFile')
     }).then(() => {
       this._setStatus('uping')
       this._initQueue()
@@ -63,33 +72,89 @@ class FileObj {
         file: this,
         response: this.chunkResponse
       })
-      // console.log('event-success')
     }).catch((er) => {
       this._resetVariable() // 失败后重置文件相关变量
-      this._setStatus('error')
-      return this._triggerEvent({
-        type: 'error',
-        file: this,
-        er: er
-      })
-      // console.log('event-error')
+      if (['pause', 'remove'].indexOf(this.status) === -1) {
+        this._setStatus('error')
+        return this._triggerEvent({
+          type: 'error',
+          file: this,
+          er: er
+        })
+      }
     }).finally(() => {
       return Promise.resolve()
     })
   }
 
   // 取消上传
-  _abort () {
-    this._controlPromise.reject(errorAbort)
-    if (this.status === 'uping') {
-      // 中止正在的请求
-      for (let i = 0; i < this._xhr.length; i++) {
-        if (this._xhr[i]) {
-          this._xhr[i].abort()
+  _abort (fileQueue) {
+    Promise.resolve().then(() => {
+      return this._triggerEvent({
+        type: 'beforePause',
+        file: this
+      })
+    }).then(() => {
+      const queueIndex = fileQueue.indexOf(this)
+      if (queueIndex === -1) { // 已调用File_start方法
+        this._controlPromise.reject(errorAbort)
+        if (this.status === 'uping') {
+          // 中止正在的请求
+          for (let i = 0; i < this._xhr.length; i++) {
+            if (this._xhr[i]) {
+              this._xhr[i].abort()
+            }
+          }
         }
+      } else { // 还在队列中，未开始上传，即未调用File._start方法
+        fileQueue.splice(queueIndex, 1)
       }
-    }
-    this._setStatus('pause')
+      this._setStatus('pause')
+      return this._triggerEvent({
+        type: 'afterPause',
+        file: this
+      })
+    }).catch((er) => {
+      // console.log(er)
+      // beforePause事件reject表示不需要暂停，afterPause事件reject无任何意义
+    })
+  }
+
+  // 移除
+  _remove (fileQueue, fileList) {
+    Promise.resolve().then(() => {
+      return this._triggerEvent({
+        type: 'beforeRemove',
+        file: this
+      })
+    }).then(() => {
+      const queueIndex = fileQueue.indexOf(this)
+      if (queueIndex === -1) { // 已调用File_start方法
+        this._controlPromise.reject(errorAbort)
+        if (this.status === 'uping') {
+          // 中止正在的请求
+          for (let i = 0; i < this._xhr.length; i++) {
+            if (this._xhr[i]) {
+              this._xhr[i].abort()
+            }
+          }
+        }
+      } else { // 还在队列中，未开始上传，即未调用File._start方法
+        fileQueue.splice(queueIndex, 1)
+      }
+      const listIndex = fileList.indexOf(this)
+      if (listIndex > -1) {
+        fileList.splice(listIndex, 1)
+      }
+      this._setStatus('remove')
+      return this._triggerEvent({
+        type: 'afterRemove',
+        file: this
+      })
+    }).catch((er) => {
+      // console.log(er)
+      // beforeRemove事件reject表示不需要移除，afterRemove事件reject无任何意义
+    })
   }
 
   // 设置文件状态
@@ -154,20 +219,19 @@ class FileObj {
     this._xhr[index].responseType = 'json'
     this._xhr[index].timeout = 0
     this._xhr[index].withCredentials = false
-    // console.log('event-beforeUpChunk')
-    return this._triggerEvent({
+    return this._wrapControlPromise(this._triggerEvent({
       type: 'beforeUpChunk',
       file: this,
       chunkIndex: index,
       chunk: chunk,
       formData: formData,
       xhr: this._xhr[index]
-    }).then(() => {
+    })).then(() => {
       return new Promise((resolve, reject) => {
         // 外层promise提前中止，会导致不存在
         if (this._xhr[index]) {
           this._xhr[index].onreadystatechange = () => {
-            if (this._xhr[index].readyState === 4) {
+            if (this._xhr[index] && this._xhr[index].readyState === 4) {
               if (this._xhr[index].status === 200) {
                 resolve(this._xhr[index].response)
               } else if (this._xhr[index].status !== 0) {
@@ -211,15 +275,14 @@ class FileObj {
           this.sendedChunk.push(index)
           this.chunkResponse[index] = response
           this._fetchList.splice(this._fetchList.indexOf(oneRequest), 1)
-          return this._triggerEvent({
+          return this._wrapControlPromise(this._triggerEvent({
             type: 'afterUpChunk',
             file: this,
             chunkIndex: index,
             chunk: oneChunk,
             progress: this.sendedChunk.length / this.chunkCount,
             response: response
-          })
-          // console.log('event-afterUpChunk')
+          }))
         })
         this._fetchList.push(oneRequest)
         oneRequest.then(() => {
@@ -228,8 +291,7 @@ class FileObj {
           const indexRequest = this._fetchList.indexOf(oneRequest)
           // 防止多次移除（但当分片上传成功，但afterUpChunk回调reject时，若不判断是否已移除，会导致移除_fetchList中的最后一个）
           if (indexRequest > -1) this._fetchList.splice(indexRequest, 1)
-          // 请求错误或超时，可再次发起请求
-          if (er === errorMaxRetry || er === errorTimeout) {
+          if (er === errorMaxRetry || er === errorTimeout) { // 请求错误或超时，可再次发起请求
             // 某分片上传失败
             if (this._retried < this._maxRetry) {
               this._retried++
@@ -238,9 +300,11 @@ class FileObj {
               this._resetVariable() // 失败后重置文件相关变量
               return Promise.reject(er)
             }
-          } else {
+          } else if (er === errorAbort) { // 取消
             this._resetVariable() // 失败后重置文件相关变量
             return Promise.reject(er)
+          } else {
+            return Promise.resolve()
           }
         })
         return Promise.resolve().then(() => this._runFetch())

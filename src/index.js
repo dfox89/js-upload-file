@@ -78,7 +78,6 @@ class Upload {
         return this._triggerEvent({
           type: 'finish'
         })
-        // console.log('event-finish')
       })
     }
   }
@@ -93,14 +92,23 @@ class Upload {
     for (let i = 0; i < toDealFile.length; i++) {
       const oneFile = this._findFileObj(toDealFile[i])
       if (oneFile && statusArr.indexOf(oneFile.status) > -1) {
-        // bug无法暂停wait的文件
-        oneFile._abort()
+        oneFile._abort(this._queueList)
       }
     }
   }
 
   // 移除上传
   remove (value) {
+    if (value && Object.prototype.toString.call(value) !== '[object Array]') {
+      value = [value]
+    }
+    const toDealFile = value || this.fileList
+    for (let i = 0; i < toDealFile.length; i++) {
+      const oneFile = this._findFileObj(toDealFile[i])
+      if (oneFile) {
+        oneFile._remove(this._queueList, this.fileList)
+      }
+    }
   }
 
   // 事件监听
@@ -207,7 +215,6 @@ class Upload {
           type: 'beforeAdd',
           file: oneFile
         })
-        // console.log('event-beforeAdd')
       }).then(() => {
         this.fileList.push(oneFile)
         this._newAdded.push(oneFile)
@@ -216,7 +223,6 @@ class Upload {
           type: 'afterAdd',
           file: oneFile
         })
-        // console.log('event-afterAdd')
       }).finally(() => {
         return this._addFileFetch()
       })

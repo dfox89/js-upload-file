@@ -10,7 +10,7 @@ const defaultOpts = {
   chunked: false, // 是否分片
   chunkSize: 1 * 1024 * 1024, // 分片大小
   maxFileParallel: 3, // 最大同时上传文件数
-  maxAjaxParallel: 2, // 单个文件最大同时上传分片数
+  maxAjaxParallel: 1, // 单个文件最大同时上传分片数
   maxRetry: 0, // 单个文件最大连续失败重试次数
   formDataKey: { // FormData使用的key
     file: 'file',

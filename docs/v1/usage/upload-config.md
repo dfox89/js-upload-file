@@ -7,24 +7,6 @@
 
 上传接口
 
-## auto
-
-> 1.3.0 新增
-
-+ 类型：`Boolean`
-+ 默认值：`false`
-
-添加的文件是否自动上传（之前添加的暂停/错误的文件不会自动再次尝试上传）
-
-## file
-
-> 1.3.0 新增
-
-+ 类型：`Array`
-+ 默认值：`[]`
-
-初始化就加入上传的文件
-
 ## chunked
 
 + 类型：`Boolean`
@@ -70,7 +52,7 @@
 | splitSize | `String` | splitSize | 分片大小 |
 | name | `String` | name | 文件名 |
 
-上传参数FormData使用的key，[示例](/example/eg-formDataKey.md)
+上传参数FormData使用的key，[示例](/v1/example/eg-formDataKey.md)
 
 ## createHash
 
@@ -78,22 +60,22 @@
 + 默认值：`(file) => {}`
   + file：原生File对象
 
-文件hash值生成方法，默认随机生成32位的uuid，自定义方法需要返回Promise，resolve值为生成的hash值，[示例](/example/eg-createHash.md)
+文件hash值生成方法，默认随机生成32位的uuid，自定义方法需要返回Promise，resolve值为生成的hash值，[示例](/v1/example/eg-createHash.md)
 
 ## beforeUpload
 
 + 类型：`Function`
 + 默认值：`(file, formData, xhr) => {}`
-  + file：[File实例](/usage/file-attr.md)
+  + file：[File实例](/v1/usage/file-attr.md)
   + formData：原生FormData对象
   + xhr：原生XMLHttpRequest对象
 
-上传前回调，[示例](/example/eg-beforeUpload.md)
+上传前回调，[示例](/v1/example/eg-beforeUpload.md)
 
 ## uploadCallback
 
 + 类型：`Function`
 + 默认值：`(obj) => {}`
-  + obj：[事件回调参数](/usage/cb-params.md)
+  + obj：[事件回调参数](/v1/usage/cb-params.md)
 
-上传事件回调，[示例](/example/eg-uploadCallback.md)
+上传事件回调，[示例](/v1/example/eg-uploadCallback.md)

@@ -1,4 +1,4 @@
-# js-upload-file
+# js-upload-file【v1】
 
 [![npm-package](https://img.shields.io/npm/v/js-upload-file?color=FF0000&label=npm%20package)](https://www.npmjs.com/package/js-upload-file)
 [![npm-publish](https://img.shields.io/github/workflow/status/dfox89/js-upload-file/npm-publish?color=FFFF00&label=npm%20publish)](https://github.com/dfox89/js-upload-file/actions)

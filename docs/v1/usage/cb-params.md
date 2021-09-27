@@ -19,7 +19,7 @@
 
 ## file
 
-+ 类型：[File实例](/usage/file-attr.md)
++ 类型：[File实例](/v1/usage/file-attr.md)
 
 文件，type为finish无此key
 

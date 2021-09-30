@@ -38,14 +38,14 @@
 
 + 参数：
   + event：必选 `String` or `Array` 监听事件名，可监听事件名见下列
-    + beforeAdd：添加文件前
-    + afterAdd：添加文件后
+    + beforeAdd：添加某文件前
+    + afterAdd：添加某文件后
     + beforeHash：某文件生成hash值前
-    + beforeUpFile：上传文件前，即hash值生成后
+    + beforeUpFile：上传某文件前，即hash值生成后
     + beforeUpChunk：上传某分片前
+    + afterUpChunk：上传某分片后
     + beforePause：某文件暂停前
     + afterPause：某文件暂停后
-    + afterUpChunk：上传某分片后
     + success：某文件上传成功
     + error：某文件上传失败
     + finish：全部上传完成，无论成功失败

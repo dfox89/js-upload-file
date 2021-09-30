@@ -23,7 +23,7 @@
   + pause：上传暂停
   + success：上传成功
   + error：上传失败
-  + remove：即将停止上传，并从实例的fileList中移除
+  + remove：即将移除
 
 文件状态
 

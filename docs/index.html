@@ -13,32 +13,39 @@
   <script>
     window.$docsify = {
       name: 'js-upload-file',
-      nameLink: {
-        '/v1/': '#/v1/',
-        '/': '#/'
-      },
       repo: 'dfox89/js-upload-file',
       homepage: '/v2/README.md',
       auto2top: true,
       themeColor: '#f00',
       relativePath: true,
-      /* search: {
-        hideOtherSidebarContent: true
-      }, */
+      loadNavbar: true,
+      // subMaxLevel: 3,
+      loadSidebar: true,
+      nameLink: {
+        '/v1/': '#/v1/',
+        '/': '#/'
+      },
+      search: {
+        hideOtherSidebarContent: true,
+        depth: 1,
+        pathNamespaces: /^(\/(v1|v2))?/
+      },
       alias: {
         '/.*/_navbar.md': '/_navbar.md',
         '/v1/.*/_sidebar.md': '/v1/_sidebar.md',
         '/v2/.*/_sidebar.md': '/v2/_sidebar.md',
         '/_sidebar.md': '/v2/_sidebar.md'
-      },
-      loadNavbar: true,
-      // subMaxLevel: 3,
-      loadSidebar: true
+      }
     }
   </script>
   <!-- Docsify v4 -->
   <script src="//cdn.jsdelivr.net/npm/docsify@4"></script>
-  <!-- <script src="//cdn.jsdelivr.net/npm/docsify/lib/plugins/search.min.js"></script> -->
-  <!-- <script src="//cdn.jsdelivr.net/npm/docsify-copy-code"></script> -->
+  <script src="//cdn.jsdelivr.net/npm/docsify/lib/plugins/search.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/docsify-copy-code"></script>
+  <script>
+    if (typeof navigator.serviceWorker !== 'undefined') {
+      navigator.serviceWorker.register('sw.js')
+    }
+  </script>
 </body>
 </html>

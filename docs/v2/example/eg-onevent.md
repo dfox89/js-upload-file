@@ -22,6 +22,27 @@ myUpload.on(['afterUpChunk', 'success'], (obj) => {
 })
 ```
 
+## 事件异步回调
+```javascript
+const myUpload = new JsUploadFile({
+  // 配置项
+})
+// 使用promise
+myUpload.on('beforeUpFile', (obj) => {
+  console.log('beforeUpFile', obj)
+  return new Promise((resolve, reject) => {
+    setTimeout(() => {
+      resolve()
+    }, 2000)
+  })
+})
+// 使用async+await
+myUpload.on('beforeUpFile', async (obj) => {
+  console.log('beforeUpFile', obj)
+  await someAsyncFun()
+})
+```
+
 ## 监听所有事件
 ```javascript
 const myUpload = new JsUploadFile({

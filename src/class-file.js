@@ -53,13 +53,13 @@ class FileObj {
       }))
     }).then(() => {
       this._setStatus('hash')
-      return this.hash ? this.hash : this._initHash()
+      // 若hash不存在，则生成随机值作为hash值
+      return (this.hash || this.hash === 0) ? this.hash : this._initHash()
     }).then((hash) => {
       this.hash = hash
       return this._wrapControlPromise(this._triggerEvent({
         type: 'beforeUpFile',
-        file: this,
-        hash: this.hash
+        file: this
       }))
     }).then(() => {
       this._setStatus('uping')

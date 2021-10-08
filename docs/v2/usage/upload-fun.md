@@ -54,4 +54,4 @@
     + all：以上全部事件
   + callback：必选 `(obj) => {}` 监听回调，回调参数obj见[事件回调参数](/v2/usage/cb-params.md)
 
-监听文件事件，若event传入多个事件组成的数组，则这些个事件会进入同一个callback中，[示例](/v2/example/eg-onevent.md)
+监听文件事件，支持异步回调，若event传入多个事件组成的数组，则这些个事件会进入同一个callback中，[示例](/v2/example/eg-onevent.md)

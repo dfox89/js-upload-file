@@ -29,7 +29,6 @@ const myUpload = new JsUploadFile({
 })
 // 使用promise
 myUpload.on('beforeUpFile', (obj) => {
-  console.log('beforeUpFile', obj)
   return new Promise((resolve, reject) => {
     setTimeout(() => {
       resolve()
@@ -38,7 +37,6 @@ myUpload.on('beforeUpFile', (obj) => {
 })
 // 使用async+await
 myUpload.on('beforeUpFile', async (obj) => {
-  console.log('beforeUpFile', obj)
   await someAsyncFun()
 })
 ```

@@ -35,6 +35,7 @@ myUpload.on('beforeUpFile', (obj) => {
     }, 2000)
   })
 })
+
 // 使用async+await
 myUpload.on('beforeUpFile', async (obj) => {
   await someAsyncFun()
@@ -61,6 +62,7 @@ const myUpload = new JsUploadFile({
 myUpload.on(['afterAdd', 'beforeUpFile'], (obj) => {
   console.log('afterAdd, beforeUpFile', obj)
 })
+
 // 监听某文件上传成功事件
 myUpload.on('success', (obj) => {
   console.log('success', obj)
@@ -77,10 +79,12 @@ const myUpload = new JsUploadFile({
 myUpload.on('success', (obj) => {
   console.log('success-1', obj)
 })
+
 // 监听上传成功事件
 myUpload.on('success', (obj) => {
   console.log('success-2', obj)
 })
+
 // 监听添加某文件后/成功事件
 myUpload.on(['afterAdd', 'success'], (obj) => {
   console.log('afterAdd, success-3', obj)

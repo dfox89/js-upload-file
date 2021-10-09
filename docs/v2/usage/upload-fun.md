@@ -40,6 +40,7 @@
   + event：必选 `String` or `Array` 监听事件名，可监听事件名见下列
     + beforeAdd：添加某文件前
     + afterAdd：添加某文件后
+    + addFinish：全部添加完毕
     + beforeHash：某文件生成hash值前
     + beforeUpFile：上传某文件前，即hash值生成后
     + beforeUpChunk：上传某分片前

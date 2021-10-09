@@ -8,6 +8,7 @@ const myUpload = new JsUploadFile({
 myUpload.on('beforeHash', (obj) => {
   obj.file.hash = '自定义的hash值'
 })
+
 // 或异步设置
 myUpload.on('beforeHash', (obj) => {
   return new Promise((resolve, reject) => {

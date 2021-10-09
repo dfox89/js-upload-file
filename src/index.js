@@ -26,12 +26,12 @@ class Upload {
   constructor (opts) {
     this.isUploading = false // 是否正在上传
     this.fileList = [] // 文件列表
+    this.isAdding = false // 是否正在添加文件
 
     this._config = this._extendConfig(defaultOpts, opts)
     this._uniqueNum = 0 // 用于生成文件唯一标识，此值用于文件开始暂停等传入辨别是哪个文件
 
-    this._newAdded = [] // 新增加的文件
-    this._addQueusList = [] // 文件添加队列
+    this._addQueueCount = 0 // 添加文件队列数
     this._queueList = [] // 文件上传队列
     this._fetchList = [] // 正在上传的文件队列
 
@@ -45,18 +45,23 @@ class Upload {
   // 添加文件到上传队列
   addFile (value) {
     // 待优化，现必须是数组
-    if (this._addQueusList.length === 0) {
-      this._addQueusList.push(...value)
-      this._addFileFetch().then(() => {
+    this.isAdding = true
+    this._addQueueCount++
+    this._addFetch(value).then((newAdded) => {
+      this._addQueueCount--
+      if (this._addQueueCount === 0) {
+        this.isAdding = false
+      }
+      return this._triggerEvent({
+        type: 'addFinish',
+        file: newAdded
+      }).then(() => {
         // 新添加的文件自动上传
         if (this._config.auto) {
-          this.start(this._newAdded)
+          this.start(newAdded)
         }
-        this._newAdded = []
       })
-    } else {
-      this._addQueusList.push(...value)
-    }
+    })
   }
 
   // 开始上传
@@ -194,39 +199,42 @@ class Upload {
     }
   }
 
-  // 文件添加队列
-  _addFileFetch () {
-    if (this._addQueusList.length === 0) {
-      return Promise.resolve()
-    } else {
-      const oneAddFile = this._addQueusList.shift()
-      const oneFile = new ClassFile(
-        oneAddFile,
-        this._uniqueNum,
-        this._config.chunked ? this._config.chunkSize : oneAddFile.size,
-        this._config.server,
-        this._config.maxAjaxParallel,
-        this._config.formDataKey,
-        this._config.maxRetry,
-        this._triggerEvent.bind(this)
-      )
-      return Promise.resolve().then(() => {
-        return this._triggerEvent({
-          type: 'beforeAdd',
-          file: oneFile
-        })
-      }).then(() => {
-        this.fileList.push(oneFile)
-        this._newAdded.push(oneFile)
-        this._uniqueNum++
-        return this._triggerEvent({
-          type: 'afterAdd',
-          file: oneFile
-        })
-      }).finally(() => {
-        return this._addFileFetch()
+  // 添加文件
+  _addFile (fileObj, newAdded) {
+    const oneFile = new ClassFile(
+      fileObj,
+      this._uniqueNum,
+      this._config.chunked ? this._config.chunkSize : fileObj.size,
+      this._config.server,
+      this._config.maxAjaxParallel,
+      this._config.formDataKey,
+      this._config.maxRetry,
+      this._triggerEvent.bind(this)
+    )
+    this._uniqueNum++
+    return Promise.resolve().then(() => {
+      return this._triggerEvent({
+        type: 'beforeAdd',
+        file: oneFile
       })
+    }).then(() => {
+      this.fileList.push(oneFile)
+      newAdded.push(oneFile)
+      return this._triggerEvent({
+        type: 'afterAdd',
+        file: oneFile
+      })
+    })
+  }
+
+  // 文件添加队列
+  _addFetch (value) {
+    const newAdded = []
+    const allAddPromise = []
+    for (let i = 0; i < value.length; i++) {
+      allAddPromise.push(this._addFile(value[i], newAdded))
     }
+    return Promise.all(allAddPromise).then(() => Promise.resolve(newAdded)).catch(() => Promise.resolve(newAdded))
   }
 }
 

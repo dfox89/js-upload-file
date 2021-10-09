@@ -16,6 +16,7 @@ JsUploadFile实例on方法中callback回调参数，只有一个，且类型是O
 | --- | --- | --- | --- | --- |
 | beforeAdd | 添加某文件前 | - | 不添加此文件 | |
 | afterAdd | 添加某文件后 | - | - | |
+| addFinish | 全部添加完毕 | - | 若初始化auto为true则不会自动上传，否则reject无影响 | |
 | beforeHash | 某文件生成hash值前 | - | 进入error事件回调 | |
 | beforeUpFile | 上传某文件前，即hash值生成后 | - | 进入error事件回调 | |
 | beforeUpChunk | 上传某分片前 | - | 不上传此分片 | reject后，注意在[File实例](/v2/usage/file-attr.md)的sendedChunk中push对应的值，<br>否则afterUpChunk回调的progress在全部分片处理完成后不会到1，<br>因为progress是由sendedChunk.length/chunkCount计算出来的 |
@@ -34,13 +35,14 @@ JsUploadFile实例on方法中callback回调参数，只有一个，且类型是O
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | beforeAdd | 有 | - | - | - | - | - | - | - |
 | afterAdd | 有 | - | - | - | - | - | - | - |
+| addFinish | 有 `Array` | - | - | - | - | - | - | - |
 | beforeHash | 有 | - | - | - | - | - | - | - |
 | beforeUpFile | 有 | - | - | - | - | - | - | - |
 | beforeUpChunk | 有 | - | - | 有 | 有 | 有 | 有 | - |
 | afterUpChunk | 有 | 有 | - | 有 | 有 | - | - | 有 |
 | beforePause | 有 | - | - | - | - | - | - | - |
 | afterPause | 有 | - | - | - | - | - | - | - |
-| success | 有 | 有 | - | - | - | - | - | - |
+| success | 有 | 有 `Array` | - | - | - | - | - | - |
 | error | 有 | - | 有 | - | - | - | - | - |
 | finish | - | - | - | - | - | - | - | - |
 | beforeRemove | 有 | - | - | - | - | - | - | - |

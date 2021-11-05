@@ -25,19 +25,19 @@
   + error：上传失败
   + remove：即将移除
 
-文件状态
+文件状态，在`afterAdd`事件前值为`''`
 
 ## hash
 
 + 类型：`String`
 
-默认为32位随机字符串，或者是在事件回调中自定义设置的hash值
+默认为32位随机字符串，或者是在事件回调中自定义设置的hash值，在`beforeUpFile`事件前值为`''`
 
 ## chunkResponse
 
 + 类型：`Array`
 
-每一分片上传成功后的返回值
+每一分片上传成功后的返回值，第一片在`Array[0]`，第二片在`Array[1]`，依次类推
 
 ## chunkSize
 
@@ -49,10 +49,10 @@
 
 + 类型：`Number`
 
-分片数，若初始化不分片则就是1
+分片数，若初始化不分片则就是`1`
 
 ## sendedChunk
 
 + 类型：`Array`
 
-已上传的分片序号，可通过在上传文件前或上传分片前修改此值，以实现续传，[示例](/v2/example/eg-continue.md)
+已上传的分片序号，可通过在`beforeUpFile`或`beforeUpChunk`事件中修改此值，以实现续传，[示例](/v2/example/eg-continue.md)

@@ -52,21 +52,21 @@ class Upload {
       if (this._addQueueCount === 0) {
         this.isAdding = false
       }
-      return this._triggerEvent({
+      this._triggerEvent({
         type: 'addFinish',
         file: newAdded
-      }).then(() => {
-        // 新添加的文件自动上传
-        if (this._config.auto) {
-          this.start(newAdded)
-        }
       })
+      // 新添加的文件自动上传
+      if (this._config.auto) {
+        this.start(newAdded)
+      }
     })
   }
 
   // 开始上传
   start (value) {
     this._initQueue(value) // 初始化文件上传队列
+    if (this._queueList.length === 0) return
     if (this.isUploading) {
       this._controlPromise.resolve(() => {
         const index = this._fetchList.indexOf(this._controlPromise._p)
@@ -223,6 +223,9 @@ class Upload {
       return this._triggerEvent({
         type: 'afterAdd',
         file: oneFile
+      }).finally(() => {
+        oneFile._setStatus('queue')
+        return Promise.resolve()
       })
     })
   }

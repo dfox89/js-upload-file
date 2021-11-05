@@ -20,7 +20,7 @@ class FileObj {
      * error上传失败
      * remove即将移除
      */
-    this.status = 'queue'
+    this.status = ''
     this.hash = '' // 唯一哈希值
 
     this.chunkResponse = [] // 每一分片上传成功后的返回值

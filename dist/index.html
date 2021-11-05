@@ -155,11 +155,10 @@
         this.myUpload.on('all', async (obj) => {
           if (obj.type === 'afterAdd') {
             const a = await this.asyncFun(3000)
-            console.log(obj)
           } else if (obj.type === 'addFinish') {
             const a = await this.asyncFun(3000)
-            console.log(obj)
           }
+          console.log(obj)
           /* const a = await this.asyncFun()
           console.log(obj.type, a)
           console.log(obj.type, obj) */

@@ -8,7 +8,7 @@ const myUpload = new JsUploadFile({
 })
 ```
 
-## commonjS
+## commonjs
 ```javascript
 const JsUploadFile = require('js-upload-file')
 const myUpload = new JsUploadFile({

@@ -33,7 +33,7 @@
 + 类型：`Number`
 + 默认值：`1 * 1024 * 1024`
 
-分片大小，单位bytes
+分片大小，单位`bytes`
 
 ## maxFileParallel
 

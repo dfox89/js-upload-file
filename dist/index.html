@@ -152,12 +152,18 @@
         this.myUpload.on(['queue', 'success'], (obj) => {
           console.log('queue,success', obj)
         }) */
+        this.myUpload.on('beforeUpChunk', (obj) => {
+          // form data中增加参数
+          obj.formData.append('temp', 'tempValue' + obj.chunkIndex)
+          // 请求头增加参数
+          obj.xhr.setRequestHeader('tempHead', 'tempHeadValue' + obj.chunkIndex)
+        })
         this.myUpload.on('all', async (obj) => {
-          if (obj.type === 'afterAdd') {
+          /* if (obj.type === 'afterAdd') {
             const a = await this.asyncFun(3000)
           } else if (obj.type === 'addFinish') {
             const a = await this.asyncFun(3000)
-          }
+          } */
           console.log(obj)
           /* const a = await this.asyncFun()
           console.log(obj.type, a)

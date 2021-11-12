@@ -55,12 +55,25 @@ class Upload {
       this._triggerEvent({
         type: 'addFinish',
         file: newAdded
+      }).then(() => {
+        this.dealAfterAddFinish(newAdded)
+        // 新添加的文件自动上传
+        if (this._config.auto) {
+          this.start(newAdded)
+        }
+      }).catch(() => {
+        this.dealAfterAddFinish(newAdded)
+        // reject不执行自动上传
       })
-      // 新添加的文件自动上传
-      if (this._config.auto) {
-        this.start(newAdded)
-      }
     })
+  }
+
+  // addFinish事件后的处理
+  dealAfterAddFinish (newAdded) {
+    // addFinish事件回调后设置文件状态为queue，若在之前设置会导致addFinish前，点击上传就会开始上传了
+    for (let i = 0; i < newAdded.length; i++) {
+      newAdded[i]._setStatus('queue')
+    }
   }
 
   // 开始上传
@@ -224,7 +237,6 @@ class Upload {
         type: 'afterAdd',
         file: oneFile
       }).finally(() => {
-        oneFile._setStatus('queue')
         return Promise.resolve()
       })
     })

@@ -12,5 +12,6 @@
   - [formDataKey示例](/v2/example/eg-formDataKey.md)
   - [on监听事件示例](/v2/example/eg-onevent.md)
   - [自定义文件hash值](/v2/example/eg-hash.md)
+  - [添加请求参数](/v2/example/eg-beforeUpChunk.md)
   - [文件续传](/v2/example/eg-continue.md)
 - [更新日志](/v2/version.md)

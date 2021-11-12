@@ -18,8 +18,8 @@ const allEvent = [
 class eventObj {
   constructor () {
     this._eventList = {}
-
-    this._queueList = []
+    this._queue = {}
+    this._uniqueKey = 0 // 用于标识事件队列，事件队列分组
   }
 
   // 监听事件
@@ -35,10 +35,12 @@ class eventObj {
   // 触发事件
   trigger (eventName, value) {
     if (!this._eventList[eventName]) return Promise.resolve()
+    this._uniqueKey++
+    this._queue[this._uniqueKey] = []
     for (let i = 0; i < this._eventList[eventName].length; i++) {
-      this._queueList.push(this._eventList[eventName][i])
+      this._queue[this._uniqueKey].push(this._eventList[eventName][i])
     }
-    return this._runFetch(value)
+    return this._runFetch(value, this._uniqueKey)
   }
 
   // 绑定事件
@@ -50,12 +52,13 @@ class eventObj {
   }
 
   // 执行事件回调
-  _runFetch (value) {
-    if (this._queueList.length === 0) {
+  _runFetch (value, key) {
+    if (this._queue[key].length === 0) {
+      delete this._queue[key]
       return Promise.resolve()
     } else {
-      const oneCallback = this._queueList.shift()
-      return Promise.resolve().then(() => oneCallback(value)).then(() => this._runFetch(value))
+      const oneCallback = this._queue[key].shift()
+      return Promise.resolve().then(() => oneCallback(value)).then(() => this._runFetch(value, key))
     }
   }
 }

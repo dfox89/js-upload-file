@@ -9,13 +9,21 @@ myUpload.on('beforeHash', (obj) => {
   obj.file.hash = '自定义的hash值'
 })
 
-// 或异步设置
+// 或异步设置，使用spark-md5生成
+const SparkMD5 = require('spark-md5')
 myUpload.on('beforeHash', (obj) => {
   return new Promise((resolve, reject) => {
-    setTimeout(() => {
-      obj.file.hash = '自定义的hash值'
+    const spark = new SparkMD5.ArrayBuffer()
+    const fileReader = new FileReader()
+    fileReader.readAsArrayBuffer(obj.file.file)
+    fileReader.onload = (e) => {
+      spark.append(e.target.result)
+      obj.file.hash = spark.end()
       resolve()
-    }, 2000)
+    }
+    fileReader.onerror = () => {
+      reject(new Error('fileReader-error'))
+    }
   })
 })
 ```

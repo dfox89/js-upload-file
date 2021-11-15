@@ -114,81 +114,34 @@
         },
         removeFile (value) {
           this.myUpload.remove(value)
-        },
-        asyncFun (num) {
-          return new Promise((resolve, rejcet) => {
-            setTimeout(() => {
-              resolve('ssss')
-            }, num)
-          })
         }
       },
       created () {
         console.log(this.myUpload)
-        /* this.myUpload.on('queue', (obj) => {
-          console.log('queue', obj)
-        })
-        this.myUpload.on('hash', (obj) => {
-          console.log('hash', obj)
-        })
-        this.myUpload.on('uping', (obj) => {
-          console.log('uping', obj)
-        })
-        this.myUpload.on('pause', (obj) => {
-          console.log('pause', obj)
-        })
-        this.myUpload.on('success', (obj) => {
-          console.log('success', obj)
-        })
-        this.myUpload.on('error', (obj) => {
-          console.log('error', obj)
-        })
-        this.myUpload.on('finish', (obj) => {
-          console.log('finish', obj)
-        })
-        this.myUpload.on('remove', (obj) => {
-          console.log('remove', obj)
-        })
-        this.myUpload.on(['queue', 'success'], (obj) => {
-          console.log('queue,success', obj)
-        }) */
         this.myUpload.on('beforeUpChunk', (obj) => {
-          // form data中增加参数
-          obj.formData.append('temp', 'tempValue' + obj.chunkIndex)
-          // 请求头增加参数
-          obj.xhr.setRequestHeader('tempHead', 'tempHeadValue' + obj.chunkIndex)
+          return new Promise((resolve, reject) => {
+            setTimeout(() => {
+              // form data中增加参数
+              obj.formData.temp = 'tempValue' + obj.chunkIndex
+              // 请求头增加参数
+              obj.headers.tempHead = 'tempHeadValue' + obj.chunkIndex
+              resolve()
+            }, 100)
+          })
         })
-        this.myUpload.on('all', async (obj) => {
-          /* if (obj.type === 'afterAdd') {
-            const a = await this.asyncFun(3000)
-          } else if (obj.type === 'addFinish') {
-            const a = await this.asyncFun(3000)
-          } */
+        this.myUpload.on('all', (obj) => {
           console.log(obj)
-          /* const a = await this.asyncFun()
-          console.log(obj.type, a)
-          console.log(obj.type, obj) */
-          /* return new Promise((resolve, reject) => {
-            if (obj.type === 'beforePause') {
-              setTimeout(() => {
-                console.log(obj.type, obj)
+          return new Promise((resolve, reject) => {
+            if (obj.type === 'beforeUpChunk') {
+              if (obj.chunkIndex === 2) {
+                reject()
+              } else {
                 resolve()
-              }, 100)
+              }
             } else {
-              setTimeout(() => {
-                console.log(obj.type, obj)
-                if (obj.type === 'beforePause') {
-                  if (Math.floor(Math.random() * 10) < 5) {
-                    reject('回调自定义reject')
-                  } else {
-                    resolve()
-                  }
-                } else {
-                  resolve()
-                }
-              }, 2000)
+              resolve()
             }
-          }) */
+          })
         })
       }
     }).mount('#counter')

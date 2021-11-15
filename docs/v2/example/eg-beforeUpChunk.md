@@ -7,8 +7,8 @@ const myUpload = new JsUploadFile({
 // 监听上传成功事件
 myUpload.on('beforeUpChunk', (obj) => {
   // form data中增加参数
-  obj.formData.append('temp', 'tempValue')
+  obj.formData.temp = 'tempValue' + obj.chunkIndex
   // 请求头增加参数
-  obj.xhr.setRequestHeader('tempHead', 'tempHeadValue')
+  obj.headers.tempHead = 'tempHeadValue' + obj.chunkIndex
 })
 ```

@@ -70,8 +70,8 @@
 | afterAdd | 添加某文件后 | - | - | |
 | addFinish | 全部添加完毕 | - | 若auto为true则不会自动上传，否则无影响 | |
 | beforeHash | 某文件生成hash值前 | - | 进入error事件回调 | |
-| beforeUpFile | 上传某文件前，即hash值生成后 | - | 进入error事件回调 | |
-| beforeUpChunk | 上传某分片前 | - | 不上传此分片 | reject后，注意在[File实例](/v2/usage/file-attr.md)的`sendedChunk`中push对应的值，<br>否则`afterUpChunk`回调的`progress`值在全部分片处理完成后不会到`1`，<br>因为`progress`是由`sendedChunk.length / chunkCount`计算出来的 |
+| beforeUpFile | 上传某文件前，即hash值生成后 | - | 进入error事件回调 | 在此回调中设置已上传的分片，被设置的分片不会进入`beforeUpChunk`，及`afterUpChunk`回调，[示例](/v2/example/eg-continue.md) |
+| beforeUpChunk | 上传某分片前 | - | 不上传此分片 | reject后，[File实例](/v2/usage/file-attr.md)的`chunkResponse`中对应的值为`undefined`，可在`beforeUpChunk`或`afterUpChunk`回调设置值，[示例](/v2/example/eg-continue.md) |
 | afterUpChunk | 上传某分片后 | - | - | |
 | beforePause | 某文件暂停前 | - | 不暂停 | |
 | afterPause | 某文件暂停后 | - | - | |

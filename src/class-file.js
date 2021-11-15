@@ -207,45 +207,68 @@ class FileObj {
   // 分片ajax请求
   _ajaxRequest (chunk) {
     const index = this._chunkArr.indexOf(chunk)
-    const formData = new FormData()
-    formData.append(this._formDataKey.file, chunk, this.file.name)
-    formData.append(this._formDataKey.hash, this.hash)
-    formData.append(this._formDataKey.chunk, index)
-    formData.append(this._formDataKey.chunks, this.chunkCount)
-    formData.append(this._formDataKey.splitSize, this.chunkSize)
-    formData.append(this._formDataKey.name, this.file.name)
-    this._xhr[index] = new XMLHttpRequest()
-    this._xhr[index].open('post', this._server, true)
-    this._xhr[index].responseType = 'json'
-    this._xhr[index].timeout = 0
-    this._xhr[index].withCredentials = false
+    const formDataObj = {
+      [this._formDataKey.file]: chunk,
+      [this._formDataKey.hash]: this.hash,
+      [this._formDataKey.chunk]: index,
+      [this._formDataKey.chunks]: this.chunkCount,
+      [this._formDataKey.splitSize]: this.chunkSize,
+      [this._formDataKey.name]: this.file.name
+    }
+    const headersObj = {}
     return this._wrapControlPromise(this._triggerEvent({
       type: 'beforeUpChunk',
       file: this,
       chunkIndex: index,
       chunk: chunk,
-      formData: formData,
-      xhr: this._xhr[index]
+      formData: formDataObj,
+      headers: headersObj
     })).then(() => {
       return new Promise((resolve, reject) => {
-        // 外层promise提前中止，会导致不存在
-        if (this._xhr[index]) {
-          this._xhr[index].onreadystatechange = () => {
-            if (this._xhr[index] && this._xhr[index].readyState === 4) {
-              if (this._xhr[index].status === 200) {
-                resolve(this._xhr[index].response)
-              } else if (this._xhr[index].status !== 0) {
-                reject(errorMaxRetry) // promise返回最内层错误，无论是否达到报错就直接返回最大重试
-              }
+        // FormData参数
+        const formData = new FormData()
+        this._setFormData(formData, formDataObj)
+        // xhr请求
+        this._xhr[index] = new XMLHttpRequest()
+        this._xhr[index].open('post', this._server, true)
+        this._xhr[index].responseType = 'json'
+        this._xhr[index].timeout = 0
+        this._xhr[index].withCredentials = false
+        // xhr请求自定义头部
+        this._setRequestHeaders(this._xhr[index], headersObj)
+        this._xhr[index].onreadystatechange = () => {
+          if (this._xhr[index] && this._xhr[index].readyState === 4) {
+            if (this._xhr[index].status === 200) {
+              resolve(this._xhr[index].response)
+            } else if (this._xhr[index].status !== 0) {
+              reject(errorMaxRetry) // promise返回最内层错误，无论是否达到报错就直接返回最大重试
             }
           }
-          this._xhr[index].onabort = () => reject(errorAbort)
-          this._xhr[index].ontimeout = () => reject(errorTimeout)
-          this._xhr[index].onerror = () => reject(errorMaxRetry) // promise返回最内层错误，无论是否达到报错就直接返回最大重试
-          this._xhr[index].send(formData)
         }
+        this._xhr[index].onabort = () => reject(errorAbort)
+        this._xhr[index].ontimeout = () => reject(errorTimeout)
+        this._xhr[index].onerror = () => reject(errorMaxRetry) // promise返回最内层错误，无论是否达到报错就直接返回最大重试
+        this._xhr[index].send(formData)
       })
     })
+  }
+
+  // 设置FormData
+  _setFormData (formData, value) {
+    for (const key in value) {
+      if (key === this._formDataKey.file) {
+        formData.append(key, value[key], this.file.name)
+      } else {
+        formData.append(key, value[key])
+      }
+    }
+  }
+
+  // 设置Request-Headers
+  _setRequestHeaders (xhr, value) {
+    for (const key in value) {
+      xhr.setRequestHeader(key, value[key])
+    }
   }
 
   // 初始化分片上传队列
@@ -269,28 +292,8 @@ class FileObj {
       if (this._fetchList.length < this._maxAjaxParallel) {
         const oneChunk = this._queueList.shift()
         const oneRequest = this._ajaxRequest(oneChunk).then((response) => {
-          // 某分片上传成功
-          const index = this._chunkArr.indexOf(oneChunk)
-          this._retried = 0
-          this.sendedChunk.push(index)
-          this.chunkResponse[index] = response
-          this._fetchList.splice(this._fetchList.indexOf(oneRequest), 1)
-          return this._wrapControlPromise(this._triggerEvent({
-            type: 'afterUpChunk',
-            file: this,
-            chunkIndex: index,
-            chunk: oneChunk,
-            progress: this.sendedChunk.length / this.chunkCount,
-            response: response
-          }))
-        })
-        this._fetchList.push(oneRequest)
-        oneRequest.then(() => {
-          // 分片上传回调执行完毕
+          return Promise.resolve(response)
         }).catch((er) => {
-          const indexRequest = this._fetchList.indexOf(oneRequest)
-          // 防止多次移除（但当分片上传成功，但afterUpChunk回调reject时，若不判断是否已移除，会导致移除_fetchList中的最后一个）
-          if (indexRequest > -1) this._fetchList.splice(indexRequest, 1)
           if (er === errorMaxRetry || er === errorTimeout) { // 请求错误或超时，可再次发起请求
             // 某分片上传失败
             if (this._retried < this._maxRetry) {
@@ -304,10 +307,28 @@ class FileObj {
             this._resetVariable() // 失败后重置文件相关变量
             return Promise.reject(er)
           } else {
-            return Promise.resolve()
+            return Promise.resolve(null)
           }
+        }).then((response) => {
+          // 某分片上传成功
+          this._fetchList.splice(this._fetchList.indexOf(oneRequest), 1)
+          const index = this._chunkArr.indexOf(oneChunk)
+          this.sendedChunk.push(index)
+          if (response) { // beforeUpChunk不是reject的
+            this.chunkResponse[index] = response
+            this._retried = 0
+          }
+          return this._wrapControlPromise(this._triggerEvent({
+            type: 'afterUpChunk',
+            file: this,
+            chunkIndex: index,
+            chunk: oneChunk,
+            progress: this.sendedChunk.length / this.chunkCount,
+            response: response
+          }))
         })
-        return Promise.resolve().then(() => this._runFetch())
+        this._fetchList.push(oneRequest)
+        return this._runFetch()
       } else {
         return Promise.race(this._fetchList).finally(() => this._runFetch())
       }

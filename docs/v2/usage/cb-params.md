@@ -10,7 +10,7 @@ JsUploadFile实例on方法中callback回调参数，只有一个，且类型是O
 
 ## 其它值
 
-| | file<br>[File实例](/v2/usage/file-attr.md) | response<br>接口返回值 | er<br>错误 | chunkIndex<br>分片序号 | chunk<br>分片 | formData<br>原生FormData对象 | xhr<br>原生XMLHttpRequest对象 | progress<br>进度 |
+| | file<br>[File实例](/v2/usage/file-attr.md) | response<br>接口返回值 | er<br>错误 | chunkIndex<br>分片序号 | chunk<br>分片 | formData请求参数 | headers请求头参数 | progress<br>进度 |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | beforeAdd | 有 | - | - | - | - | - | - | - |
 | afterAdd | 有 | - | - | - | - | - | - | - |

@@ -62,8 +62,6 @@
 > 1、“-”表示无影响，若回调是`promise`，需要`resolve`方可继续；<br>
 > 2、若`reject`会进入`error`回调，`reject`时传入的值，即`error`回调中`er`的值；<br>
 
-!> `reject`时，请不要传入`error-abort`，`error-timeout`，`error-maxretry`等值，否则会导致内部判断错误；<br>
-
 | | 事件名 | resolve | reject | 备注 |
 | --- | --- | --- | --- | --- |
 | beforeAdd | 添加某文件前 | - | 不添加此文件 | |
@@ -71,7 +69,7 @@
 | addFinish | 全部添加完毕 | - | 若auto为true则不会自动上传，否则无影响 | |
 | beforeHash | 某文件生成hash值前 | - | 进入error事件回调 | |
 | beforeUpFile | 上传某文件前，即hash值生成后 | - | 进入error事件回调 | 在此回调中设置已上传的分片，被设置的分片不会进入`beforeUpChunk`，及`afterUpChunk`回调，[示例](/v2/example/eg-continue.md) |
-| beforeUpChunk | 上传某分片前 | - | 不上传此分片 | reject后，[File实例](/v2/usage/file-attr.md)的`chunkResponse`中对应的值为`undefined`，可在`beforeUpChunk`或`afterUpChunk`回调设置值，[示例](/v2/example/eg-continue.md) |
+| beforeUpChunk | 上传某分片前 | - | 不上传此分片 | reject后，[File实例](/v2/usage/file-attr.md)的`chunkResponse`中对应的值为`undefined`，可在`beforeUpChunk`或`afterUpChunk`回调中设置值，[示例](/v2/example/eg-continue.md) |
 | afterUpChunk | 上传某分片后 | - | - | |
 | beforePause | 某文件暂停前 | - | 不暂停 | |
 | afterPause | 某文件暂停后 | - | - | |

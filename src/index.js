@@ -48,10 +48,6 @@ class Upload {
     this.isAdding = true
     this._addQueueCount++
     this._addFetch(value).then((newAdded) => {
-      this._addQueueCount--
-      if (this._addQueueCount === 0) {
-        this.isAdding = false
-      }
       this._triggerEvent({
         type: 'addFinish',
         file: newAdded
@@ -73,6 +69,10 @@ class Upload {
     // addFinish事件回调后设置文件状态为queue，若在之前设置会导致addFinish前，点击上传就会开始上传了
     for (let i = 0; i < newAdded.length; i++) {
       newAdded[i]._setStatus('queue')
+    }
+    this._addQueueCount--
+    if (this._addQueueCount === 0) {
+      this.isAdding = false
     }
   }
 

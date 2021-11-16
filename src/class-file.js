@@ -1,9 +1,9 @@
 import ClassControlPromise from './class-control-promise.js'
 
 // 自定义内部promise中reject的值
-const errorAbort = 'error-abort' // 请求取消
-const errorTimeout = 'error-timeout' // 请求超时
-const errorMaxRetry = 'error-maxretry' // 超过最大失败次数
+const errorAbort = Symbol('error-abort') // 请求取消
+const errorTimeout = Symbol('error-timeout') // 请求超时
+const errorMaxRetry = Symbol('error-maxretry') // 超过最大失败次数
 
 class FileObj {
   constructor (file, uniqueNum, chunkSize, server, maxAjaxParallel, formDataKey, maxRetry, triggerEvent) {
@@ -79,7 +79,7 @@ class FileObj {
         return this._triggerEvent({
           type: 'error',
           file: this,
-          er: er
+          er: this._symbolToValue(er)
         })
       }
     }).finally(() => {
@@ -162,6 +162,19 @@ class FileObj {
     this.status = value
   }
 
+  // Symbol转为值
+  _symbolToValue (value) {
+    if (value === errorAbort) {
+      return 'error-abort' // 取消，不会进入error回调
+    } else if (value === errorTimeout) {
+      return 'error-timeout'
+    } else if (value === errorMaxRetry) {
+      return 'error-maxretry'
+    } else {
+      return value
+    }
+  }
+
   // 生成文件hash值
   _initHash () {
     return 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx'.replace(/x/g, () => {
@@ -193,6 +206,10 @@ class FileObj {
     this._retried = 0
     this._queueList = []
     this._fetchList = []
+    // 中止正在的请求
+    for (let i = 0; i < this._xhr.length; i++) {
+      if (this._xhr[i]) this._xhr[i].abort()
+    }
     this._xhr = []
   }
 
@@ -216,7 +233,7 @@ class FileObj {
       [this._formDataKey.name]: this.file.name
     }
     const headersObj = {}
-    return this._wrapControlPromise(this._triggerEvent({
+    const oneRequest = this._wrapControlPromise(this._triggerEvent({
       type: 'beforeUpChunk',
       file: this,
       chunkIndex: index,
@@ -250,7 +267,48 @@ class FileObj {
         this._xhr[index].onerror = () => reject(errorMaxRetry) // promise返回最内层错误，无论是否达到报错就直接返回最大重试
         this._xhr[index].send(formData)
       })
+    }).then((response) => {
+      // 某分片上传成功
+      const requestIndex = this._fetchList.indexOf(oneRequest)
+      if (requestIndex > -1) { // 多线同时上传，某片失败会导致其它片继续上传进入回调，但_fetchList已重置为[]
+        this._fetchList.splice(requestIndex, 1)
+        this.sendedChunk.push(index)
+        this.chunkResponse[index] = response
+        this._retried = 0
+        return this._wrapControlPromise(this._triggerEvent({
+          type: 'afterUpChunk',
+          file: this,
+          chunkIndex: index,
+          chunk: chunk,
+          progress: this.sendedChunk.length / this.chunkCount,
+          response: response
+        })).catch(() => {
+          // 捕获错误，防止进入外层catch
+        })
+      }
+    }).catch((er) => {
+      // 某分片上传失败
+      const requestIndex = this._fetchList.indexOf(oneRequest)
+      if (requestIndex > -1) { // 多线同时上传，某片失败会导致其它片继续上传进入回调，但_fetchList已重置为[]
+        this._fetchList.splice(requestIndex, 1)
+        if (er === errorMaxRetry || er === errorTimeout) { // 请求错误或超时，可再次发起请求
+          // 某分片上传失败
+          if (this._retried < this._maxRetry) {
+            this._retried++
+            this._queueList.unshift(chunk)
+          } else { // 达到最大失败重试次数
+            this._resetVariable() // 失败后重置文件相关变量
+            return Promise.reject(er)
+          }
+        } else if (er === errorAbort) { // 取消
+          this._resetVariable() // 失败后重置文件相关变量
+          return Promise.reject(er)
+        } else { // beforeUpChunk被reject，表示跳过此分片
+          this.sendedChunk.push(index)
+        }
+      }
     })
+    return oneRequest
   }
 
   // 设置FormData
@@ -291,42 +349,7 @@ class FileObj {
     } else {
       if (this._fetchList.length < this._maxAjaxParallel) {
         const oneChunk = this._queueList.shift()
-        const oneRequest = this._ajaxRequest(oneChunk).then((response) => {
-          return Promise.resolve(response)
-        }).catch((er) => {
-          if (er === errorMaxRetry || er === errorTimeout) { // 请求错误或超时，可再次发起请求
-            // 某分片上传失败
-            if (this._retried < this._maxRetry) {
-              this._retried++
-              this._queueList.unshift(oneChunk)
-            } else { // 达到最大失败重试次数
-              this._resetVariable() // 失败后重置文件相关变量
-              return Promise.reject(er)
-            }
-          } else if (er === errorAbort) { // 取消
-            this._resetVariable() // 失败后重置文件相关变量
-            return Promise.reject(er)
-          } else {
-            return Promise.resolve(null)
-          }
-        }).then((response) => {
-          // 某分片上传成功
-          this._fetchList.splice(this._fetchList.indexOf(oneRequest), 1)
-          const index = this._chunkArr.indexOf(oneChunk)
-          this.sendedChunk.push(index)
-          if (response) { // beforeUpChunk不是reject的
-            this.chunkResponse[index] = response
-            this._retried = 0
-          }
-          return this._wrapControlPromise(this._triggerEvent({
-            type: 'afterUpChunk',
-            file: this,
-            chunkIndex: index,
-            chunk: oneChunk,
-            progress: this.sendedChunk.length / this.chunkCount,
-            response: response
-          }))
-        })
+        const oneRequest = this._ajaxRequest(oneChunk)
         this._fetchList.push(oneRequest)
         return this._runFetch()
       } else {

@@ -55,4 +55,4 @@
 
 + 类型：`Array`
 
-已上传的分片序号，可通过在`beforeUpFile`事件中修改此值，或`beforeUpChunk`中使用`reject`，以实现续传，[示例](/v2/example/eg-continue.md)
+已上传的分片序号，可通过在`beforeUpFile`事件中修改此值，或`beforeUpChunk`中使用`reject`，以略过已上传分片，[示例](/v2/example/eg-continue.md)

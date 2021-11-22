@@ -9,6 +9,11 @@ class FileObj {
   constructor (file, uniqueNum, chunkSize, server, maxAjaxParallel, formDataKey, maxRetry, triggerEvent) {
     this.file = file // 原生文件对象
     this.id = 'file_' + uniqueNum // 文件唯一标识
+    if (file.name.lastIndexOf('.') > -1) {
+      this.ext = file.name.substring(file.name.lastIndexOf('.') + 1)
+    } else {
+      this.ext = ''
+    }
     /**
      * 状态
      * queue待上传

@@ -27,6 +27,12 @@
 
 文件状态，在`addFinish`事件前为`''`，在`addFinish`事件后值初始化为`queue`（在`addFinish`事件回调结束前，点击上传，这批文件不会开始上传）
 
+## ext
+
++ 类型：`String`
+
+文件扩展名，不存在则为`''`
+
 ## hash
 
 + 类型：`String`

@@ -10,4 +10,4 @@
 
 + 类型：`Array`
 
-文件列表，每项均是一个[File实例](/usage/file-attr.md)
+文件列表，每项均是一个[File实例](/v1/usage/file-attr.md)

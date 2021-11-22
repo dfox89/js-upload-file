@@ -47,6 +47,9 @@ koaWebpack({
   }))
   
   router.post('/file/upload', async (ctx, next) => {
+    /* if (ctx.request.body.chunkIndex === '0') {
+      throw new Error('handorwer')
+    } */
     // 测试随机失败
     /* if (Math.floor(Math.random() * 10) < 5) {
       throw new Error('handorwer')

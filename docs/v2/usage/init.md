@@ -8,7 +8,7 @@ const myUpload = new JsUploadFile({
 })
 ```
 
-## commonjS
+## commonjs
 ```javascript
 const JsUploadFile = require('js-upload-file')
 const myUpload = new JsUploadFile({
@@ -27,7 +27,7 @@ require(['js-upload-file'], function (JsUploadFile) {
 
 ## cdn
 ```html
-<script src="//cdn.jsdelivr.net/npm/js-upload-file@1/dist/js-upload-file.min.js"></script>
+<script src="//cdn.jsdelivr.net/npm/js-upload-file@2/dist/js-upload-file.min.js"></script>
 <script>
   const myUpload = new JsUploadFile({
     // 配置项

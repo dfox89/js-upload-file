@@ -1,0 +1,18 @@
+- 使用
+  - [安装](/v2/usage/install.md)
+  - [初始化](/v2/usage/init.md)
+  - [JsUploadFile配置项](/v2/usage/upload-config.md)
+  - [JsUploadFile实例属性](/v2/usage/upload-attr.md)
+  - [JsUploadFile实例方法](/v2/usage/upload-fun.md)
+  - [File实例属性](/v2/usage/file-attr.md)
+  - [上传事件回调参数](/v2/usage/cb-params.md)
+- 示例
+  - [完整示例](/v2/example/example.md)
+  - [简单示例](/v2/example/eg-simple.md)
+  - [formDataKey示例](/v2/example/eg-formDataKey.md)
+  - [on监听事件示例](/v2/example/eg-onevent.md)
+  - [自定义文件hash值](/v2/example/eg-hash.md)
+  - [添加请求参数](/v2/example/eg-beforeUpChunk.md)
+  - [文件续传](/v2/example/eg-continue.md)
+  - [添加自定义值](/v2/example/eg-diydata.md)
+- [更新日志](/v2/version.md)

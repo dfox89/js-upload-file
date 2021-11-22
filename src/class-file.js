@@ -27,6 +27,7 @@ class FileObj {
      */
     this.status = ''
     this.hash = '' // 唯一哈希值
+    this.data = {} // 自定义添加的变量
 
     this.chunkResponse = [] // 每一分片上传成功后的返回值
     this.chunkSize = chunkSize // 分片大小，若不分片则就是文件大小

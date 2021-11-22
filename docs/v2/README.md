@@ -7,6 +7,8 @@
 - 支持多种上传事件，便于对整个上传过程监听与控制；
 - 事件回调支持异步方法，便于实现事件的异步校验及相关业务逻辑；
 
+[在线示例](http://www.2naive.top/jsUploadFile)
+
 ```javascript
 // 引入
 import JsUploadFile from 'js-upload-file'

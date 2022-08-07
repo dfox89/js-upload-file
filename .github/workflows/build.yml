@@ -1,0 +1,33 @@
+name: build
+
+on:
+  push:
+    branches: [ master ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Setup node
+        uses: actions/setup-node@v2
+        with:
+          node-version: 14
+      
+      - name: Build
+        run: yarn && yarn build
+
+      - name: Commit
+        run: |
+          git config --local user.email "1253980580@qq.com"
+          git config --local user.name "dfox89"
+          git add .
+          git commit -m "auto build project"
+      
+      - name: Push
+        uses: ad-m/github-push-action@v0.6.0
+        with:
+          github_token: ${{ secrets.COMMIT_PUSH }}
+          branch: master

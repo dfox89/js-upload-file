@@ -1,6 +1,6 @@
 {
   "name": "js-upload-file",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "main": "dist/js-upload-file.min.js",
   "scripts": {
     "dev": "cross-env NODE_ENV=development ./node_modules/.bin/nodemon ./server.js",

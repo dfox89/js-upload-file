@@ -15,8 +15,6 @@
 
 [详细文档](https://dfox89.github.io/js-upload-file/)
 
-[在线示例](http://www.2naive.top/jsUploadFile)
-
 
 ```javascript
 // 引入

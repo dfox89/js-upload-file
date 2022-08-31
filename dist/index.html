@@ -32,6 +32,7 @@
 <body>
   <div id="counter">
     <input type="file" name="file" multiple @change="selectFile($event)">
+    <input type="file" name="file" multiple @change="selectFileUp($event)">
     <button @click="stopUpload()" v-if="myUpload.isUploading">暂停上传</button>
     <button @click="startUpload()" v-else>开始上传</button>
     &nbsp;<span>{{myUpload.fetchedIndex}}</span>&nbsp;
@@ -114,6 +115,12 @@
           const files = event.target.files
           this.myUpload.addFile(files)
         },
+        selectFileUp (event) {
+          const files = event.target.files
+          this.myUpload.addFile(files, {
+            up: true
+          })
+        },
         startUpload (value) {
           this.myUpload.start(value)
         },
@@ -128,6 +135,9 @@
         console.log(this.myUpload)
         this.myUpload.on('queue', (obj) => {
           console.log('queue', obj)
+          if (obj.file.meta.up) {
+            this.myUpload.start(obj.file)
+          }
         })
         this.myUpload.on('hash', (obj) => {
           console.log('hash', obj)

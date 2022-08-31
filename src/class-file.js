@@ -1,10 +1,11 @@
 import ClassControlPromise from './class-control-promise.js'
 
 class FileObj {
-  constructor (file, triggerEvent, config, uniqueNum) {
+  constructor (file, triggerEvent, config, uniqueNum, meta) {
     this.id = 'file_' + uniqueNum // 文件唯一标识
     this.file = file // js文件对象
     this.status = 'queue' // 状态（queue待上传，wait等待上传队列，hash生成哈希值中，uping上传中，pause上传暂停，success上传成功，error上传失败，remove即将从fileList中移除）
+    this.meta = meta // 存放自定义变量
     this.hash = '' // 哈希值
     this.chunkSize = config.chunked ? config.chunkSize : file.size // 分片大小，若不分片则就是文件大小
     this.chunkCount = Math.ceil(file.size / this.chunkSize) // 分片数，若不分片则就是1

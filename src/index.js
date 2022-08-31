@@ -60,13 +60,14 @@ class Upload {
   }
 
   // 添加文件到上传队列
-  addFile (value) {
+  addFile (value, meta = {}) {
     for (let i = 0; i < value.length; i++) {
       const oneFile = new ClassFile(
         value[i],
         this._triggerEvent.bind(this),
         this._config,
-        this._uniqueNum
+        this._uniqueNum,
+        meta
       )
       this.fileList.push(oneFile)
       this._triggerEvent({

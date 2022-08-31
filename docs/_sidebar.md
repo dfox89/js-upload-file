@@ -14,5 +14,6 @@
   - [beforeUpload示例](/example/eg-beforeUpload.md)
   - [uploadCallback示例](/example/eg-uploadCallback.md)
   - [on监听事件示例](/example/eg-onevent.md)
+  - [File实例meta使用示例](/example/eg-file-meta.md)
 - 更新日志
   - [v1](/version/v1.md)

@@ -1,9 +1,10 @@
 # JsUploadFile实例方法
 
-## addFile(value)
+## addFile(value, meta)
 
 + 参数：
   + value：必选 `Array` 原生File对象组成的数组
+  + meta：可选 `Object` 此值会设置到[File实例](/usage/file-attr.md?id=meta)的`meta`属相上
 
 将文件添加到上传实例中<br>* 添加的文件status默认为queue
 

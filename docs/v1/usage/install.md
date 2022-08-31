@@ -2,12 +2,12 @@
 
 ## npm
 ```sh
-npm install js-upload-file
+npm install js-upload-file@1
 ```
 
 ## yarn
 ```sh
-yarn add js-upload-file
+yarn add js-upload-file@1
 ```
 
 ## cdn

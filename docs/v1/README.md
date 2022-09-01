@@ -1,4 +1,4 @@
-# js-upload-file ![version](https://img.shields.io/badge/-v1.2.1-%23f00)
+# js-upload-file ![version](https://img.shields.io/npm/v/js-upload-file/v1-latest?color=FF0000&label=)
 
 !> 当前为v1文档，如需其它版本文档，请点击右上角切换
 

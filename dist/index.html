@@ -104,7 +104,9 @@
       methods: {
         selectFile (event) {
           const files = event.target.files
-          this.myUpload.addFile(files)
+          this.myUpload.addFile(files, {
+            autoUp: true
+          })
         },
         startUpload (value) {
           this.myUpload.start(value)
@@ -118,6 +120,13 @@
       },
       created () {
         console.log(this.myUpload)
+        this.myUpload.on('afterAdd', (obj) => {
+          console.log('afterAdd', obj)
+          if (obj.file.data.autoUp) {
+            // 判断此文件添加后需要立即上传
+            this.myUpload.start(obj.file)
+          }
+        })
         this.myUpload.on('beforeUpChunk', (obj) => {
           return new Promise((resolve, reject) => {
             setTimeout(() => {

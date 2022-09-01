@@ -6,7 +6,7 @@ const errorTimeout = Symbol('error-timeout') // 请求超时
 const errorMaxRetry = Symbol('error-maxretry') // 超过最大失败次数
 
 class FileObj {
-  constructor (file, uniqueNum, chunkSize, server, maxAjaxParallel, formDataKey, maxRetry, triggerEvent) {
+  constructor (file, uniqueNum, chunkSize, server, maxAjaxParallel, formDataKey, maxRetry, triggerEvent, metaData) {
     this.file = file // 原生文件对象
     this.id = 'file_' + uniqueNum // 文件唯一标识
     if (file.name.lastIndexOf('.') > -1) {
@@ -27,7 +27,7 @@ class FileObj {
      */
     this.status = ''
     this.hash = '' // 唯一哈希值
-    this.data = {} // 自定义添加的变量
+    this.data = metaData // 自定义添加的变量
 
     this.chunkResponse = [] // 每一分片上传成功后的返回值
     this.chunkSize = chunkSize // 分片大小，若不分片则就是文件大小

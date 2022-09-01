@@ -43,33 +43,29 @@ class Upload {
   }
 
   // 添加文件到上传队列
-  addFile (value) {
+  addFile (value, metaData = {}) {
     // 待优化，现必须是数组
     this.isAdding = true
     this._addQueueCount++
-    this._addFetch(value).then((newAdded) => {
+    this._addFetch(value, metaData).then((newAdded) => {
       this._triggerEvent({
         type: 'addFinish',
         file: newAdded
       }).then(() => {
-        this.dealAfterAddFinish(newAdded)
+        this._dealAfterAddFinish()
         // 新添加的文件自动上传
         if (this._config.auto) {
           this.start(newAdded)
         }
       }).catch(() => {
-        this.dealAfterAddFinish(newAdded)
+        this._dealAfterAddFinish()
         // reject不执行自动上传
       })
     })
   }
 
   // addFinish事件后的处理
-  dealAfterAddFinish (newAdded) {
-    // addFinish事件回调后设置文件状态为queue，若在之前设置会导致addFinish前，点击上传就会开始上传了
-    for (let i = 0; i < newAdded.length; i++) {
-      newAdded[i]._setStatus('queue')
-    }
+  _dealAfterAddFinish () {
     this._addQueueCount--
     if (this._addQueueCount === 0) {
       this.isAdding = false
@@ -213,7 +209,7 @@ class Upload {
   }
 
   // 添加文件
-  _addFile (fileObj, newAdded) {
+  _addFile (fileObj, newAdded, metaData) {
     const oneFile = new ClassFile(
       fileObj,
       this._uniqueNum,
@@ -222,7 +218,8 @@ class Upload {
       this._config.maxAjaxParallel,
       this._config.formDataKey,
       this._config.maxRetry,
-      this._triggerEvent.bind(this)
+      this._triggerEvent.bind(this),
+      this._deepCopy(metaData)
     )
     this._uniqueNum++
     return Promise.resolve().then(() => {
@@ -231,6 +228,7 @@ class Upload {
         file: oneFile
       })
     }).then(() => {
+      oneFile._setStatus('queue')
       this.fileList.push(oneFile)
       newAdded.push(oneFile)
       return this._triggerEvent({
@@ -243,13 +241,27 @@ class Upload {
   }
 
   // 文件添加队列
-  _addFetch (value) {
+  _addFetch (value, metaData) {
     const newAdded = []
     const allAddPromise = []
     for (let i = 0; i < value.length; i++) {
-      allAddPromise.push(this._addFile(value[i], newAdded))
+      allAddPromise.push(this._addFile(value[i], newAdded, metaData))
     }
     return Promise.all(allAddPromise).then(() => Promise.resolve(newAdded)).catch(() => Promise.resolve(newAdded))
+  }
+
+  // 深拷贝
+  _deepCopy (obj) {
+    const back = obj instanceof Array ? [] : {}
+    for (const key in obj) {
+      const objType = Object.prototype.toString.call(obj[key])
+      if (objType === '[object Object]' || objType === '[object Array]') {
+        back[key] = this._deepCopy(obj[key])
+      } else {
+        back[key] = obj[key]
+      }
+    }
+    return back
   }
 }
 

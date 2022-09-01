@@ -28,3 +28,21 @@ myUpload.on('success', (obj) => {
   console.log('自定义属性type', obj.file.data.type)
 })
 ```
+
+## 通过自定义值，实现部分文件添加后立即上传
+```javascript
+const myUpload = new JsUploadFile({
+  // 配置项
+})
+myUpload.on('afterAdd', (obj) => {
+  console.log('afterAdd', obj)
+  if (obj.file.data.autoUp) {
+    // 判断此文件添加后需要立即上传
+    this.myUpload.start(obj.file)
+  }
+})
+// 添加文件
+myUpload.addFile(files, {
+  autoUp: true // 添加自定义变量到File实例的data上，以实现在afterAdd回调中上传文件，实现这些文件添加后立即上传
+})
+```

@@ -67,7 +67,7 @@ class Upload {
         this._triggerEvent.bind(this),
         this._config,
         this._uniqueNum,
-        meta
+        this._deepCopy(meta)
       )
       this.fileList.push(oneFile)
       this._triggerEvent({
@@ -245,6 +245,20 @@ class Upload {
     } else { // 传入的就是File实例
       return value
     }
+  }
+
+  // 深拷贝
+  _deepCopy (obj) {
+    const back = obj instanceof Array ? [] : {}
+    for (const key in obj) {
+      const objType = Object.prototype.toString.call(obj[key])
+      if (objType === '[object Object]' || objType === '[object Array]') {
+        back[key] = this._deepCopy(obj[key])
+      } else {
+        back[key] = obj[key]
+      }
+    }
+    return back
   }
 }
 
